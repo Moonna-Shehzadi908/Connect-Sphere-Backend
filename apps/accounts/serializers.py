@@ -5,11 +5,6 @@ User = get_user_model()
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    """
-    Serializer responsible for validating
-    incoming registration data.
-    """
-
     password2 = serializers.CharField(write_only=True)
 
     class Meta:
@@ -28,10 +23,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        """
-        Ensure both passwords match.
-        """
-
         if attrs["password"] != attrs["password2"]:
             raise serializers.ValidationError(
                 {
@@ -41,36 +32,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return attrs
 
-from django.contrib.auth import authenticate
-from rest_framework import serializers
-from rest_framework_simplejwt.tokens import RefreshToken
+    def create(self, validated_data):
+        validated_data.pop("password2")
 
-
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-
-    def validate(self, attrs):
-        email = attrs.get("email")
-        password = attrs.get("password")
-
-        user = authenticate(
-            username=email,
-            password=password
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
         )
 
-        if not user:
-            raise serializers.ValidationError(
-                "Invalid email or password."
-            )
-
-        refresh = RefreshToken.for_user(user)
-
-        return {
-            "user": user,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }
+        return user
     
 class UserSerializer(serializers.ModelSerializer):
     """
