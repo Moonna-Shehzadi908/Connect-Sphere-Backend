@@ -1,8 +1,13 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth.password_validation import validate_password
+
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
+
+# ---------------- REGISTER ---------------- #
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
@@ -25,9 +30,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs["password"] != attrs["password2"]:
             raise serializers.ValidationError(
-                {
-                    "password": "Passwords do not match."
-                }
+                {"password": "Passwords do not match."}
             )
 
         return attrs
@@ -42,12 +45,40 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         return user
-    
+
+
+# ---------------- LOGIN ---------------- #
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        user = authenticate(
+            username=email,
+            password=password
+        )
+
+        if user is None:
+            raise serializers.ValidationError(
+                "Invalid email or password."
+            )
+
+        refresh = RefreshToken.for_user(user)
+
+        return {
+            "user": UserSerializer(user).data,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
+
+
+# ---------------- USER ---------------- #
+
 class UserSerializer(serializers.ModelSerializer):
-    """
-    Serializer used to return user information.
-    Never expose passwords.
-    """
 
     class Meta:
         model = User
@@ -56,20 +87,19 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "email",
         )
-from rest_framework_simplejwt.tokens import RefreshToken
 
+
+# ---------------- LOGOUT ---------------- #
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
     def save(self):
-        refresh_token = self.validated_data["refresh"]
-
-        token = RefreshToken(refresh_token)
+        token = RefreshToken(self.validated_data["refresh"])
         token.blacklist()
 
-from django.contrib.auth.password_validation import validate_password
 
+# ---------------- CHANGE PASSWORD ---------------- #
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
@@ -79,27 +109,22 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, attrs):
         user = self.context["request"].user
 
-        # Check old password
         if not user.check_password(attrs["old_password"]):
-            raise serializers.ValidationError({
-                "old_password": "Old password is incorrect."
-            })
+            raise serializers.ValidationError(
+                {"old_password": "Old password is incorrect."}
+            )
 
-        # Check new passwords match
         if attrs["new_password"] != attrs["confirm_password"]:
-            raise serializers.ValidationError({
-                "confirm_password": "Passwords do not match."
-            })
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
 
-        # Validate password strength
         validate_password(attrs["new_password"], user)
 
         return attrs
 
     def save(self):
         user = self.context["request"].user
-
         user.set_password(self.validated_data["new_password"])
         user.save()
-
         return user
