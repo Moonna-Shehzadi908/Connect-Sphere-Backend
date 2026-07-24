@@ -165,10 +165,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ==========================
 # CORS
 # ==========================
-
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
