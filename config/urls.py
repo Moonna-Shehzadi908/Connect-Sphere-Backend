@@ -23,6 +23,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/",include("apps.accounts.urls"),),
     path("api/profiles/", include("apps.profiles.urls")),
+    path("api/posts/",include("apps.posts.urls"),),
 ]
 if settings.DEBUG:
     urlpatterns += static(

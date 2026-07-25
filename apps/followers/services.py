@@ -91,3 +91,92 @@ def unfollow_user(follower, username):
         "message": f"You have unfollowed {following.username}.",
         "status": 200,
     }
+
+def get_followers(username):
+    """
+    Return all followers of a user.
+    """
+
+    try:
+        user = User.objects.get(username=username)
+
+    except User.DoesNotExist:
+        return {
+            "success": False,
+            "message": "User does not exist.",
+            "status": 404,
+        }
+
+    followers = User.objects.filter(
+        following__following=user
+    ).select_related("profile")
+
+    return {
+        "success": True,
+        "followers": followers,
+        "status": 200,
+    }
+def get_following(username):
+
+    try:
+        user = User.objects.get(username=username)
+
+    except User.DoesNotExist:
+        return {
+            "success": False,
+            "message": "User does not exist.",
+            "status": 404,
+        }
+
+    following = User.objects.filter(
+        followers__follower=user
+    ).select_related("profile")
+
+    return {
+        "success": True,
+        "following": following,
+        "status": 200,
+    }
+def get_profile_stats(username):
+
+    try:
+        user = User.objects.get(username=username)
+
+    except User.DoesNotExist:
+        return {
+            "success": False,
+            "message": "User does not exist.",
+            "status": 404,
+        }
+
+    return {
+        "success": True,
+        "stats": {
+            "followers": Follow.objects.filter(
+                following=user
+            ).count(),
+
+            "following": Follow.objects.filter(
+                follower=user
+            ).count(),
+        },
+        "status": 200,
+    }
+
+from django.db.models import Q
+import random
+
+
+def get_friend_suggestions(user):
+
+    users = User.objects.exclude(
+        id=user.id
+    ).exclude(
+        followers__follower=user
+    )
+
+    users = list(users)
+
+    random.shuffle(users)
+
+    return users[:10]

@@ -3,8 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import FollowUserSerializer
-from .services import follow_user
+from .serializers import FollowUserSerializer, UserFollowerSerializer
+from .services import follow_user, get_followers, get_following, get_friend_suggestions, get_profile_stats
 
 
 class FollowUserView(APIView):
@@ -69,3 +69,77 @@ class UnfollowUserView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+class FollowersListView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username):
+
+        result = get_followers(username)
+
+        if not result["success"]:
+            return Response(
+                {"message": result["message"]},
+                status=result["status"],
+            )
+
+        serializer = UserFollowerSerializer(
+            result["followers"],
+            many=True,
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+class FollowingListView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username):
+
+        result = get_following(username)
+
+        if not result["success"]:
+            return Response(
+                {"message": result["message"]},
+                status=result["status"],
+            )
+
+        serializer = UserFollowerSerializer(
+            result["following"],
+            many=True,
+        )
+
+        return Response(serializer.data)
+
+class ProfileStatsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, username):
+
+        result = get_profile_stats(username)
+
+        if not result["success"]:
+            return Response(
+                {"message": result["message"]},
+                status=result["status"],
+            )
+
+        return Response(result["stats"])
+
+class FriendSuggestionsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        users = get_friend_suggestions(request.user)
+
+        serializer = UserFollowerSerializer(
+            users,
+            many=True,
+        )
+
+        return Response(serializer.data)
