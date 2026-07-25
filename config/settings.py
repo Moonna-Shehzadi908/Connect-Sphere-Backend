@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "apps.followers",
     "apps.posts",
     'rest_framework_simplejwt.token_blacklist',
+    "core",
      
 ]
 

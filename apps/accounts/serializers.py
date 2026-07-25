@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+"""
+Serializer for user registration.
+"""
 User = get_user_model()
 
 
@@ -9,10 +12,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     Serializer responsible for validating
     incoming registration data.
     """
-
+    # Adding a second password field to ensure users
+    # confirm their password during registration.
     password2 = serializers.CharField(write_only=True)
 
     class Meta:
+        # Specifying the model and fields for the serializer
         model = User
         fields = (
             "username",
