@@ -7,6 +7,8 @@ from rest_framework.parsers import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from .models import Post
+from rest_framework.parsers import JSONParser
 
 from .serializers import PostSerializer
 from .services import create_post
@@ -19,9 +21,10 @@ class CreatePostView(APIView):
     ]
 
     parser_classes = (
-        MultiPartParser,
-        FormParser,
-    )
+    JSONParser,
+    MultiPartParser,
+    FormParser,
+)
 
     def post(self, request):
 
@@ -51,4 +54,27 @@ class CreatePostView(APIView):
         return Response(
             serializer.data,
             status=status.HTTP_201_CREATED,
+        )
+        from .models import Post
+
+class PostListView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        posts = Post.objects.select_related(
+            "author"
+        ).prefetch_related(
+            "images"
+        )
+
+        serializer = PostSerializer(
+            posts,
+            many=True,
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
         )
