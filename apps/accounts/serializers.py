@@ -36,7 +36,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         """
         Ensure both passwords match.
         """
-
+        # Ensure both password fields are provided
         if attrs["password"] != attrs["password2"]:
             raise serializers.ValidationError(
                 {
@@ -46,12 +46,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return attrs
 
+
 from django.contrib.auth import authenticate
+
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
+# Serializer for user login
 class LoginSerializer(serializers.Serializer):
+
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
@@ -92,7 +95,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
+# Serializer for user logout
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
 
@@ -104,12 +107,13 @@ class LogoutSerializer(serializers.Serializer):
 
 from django.contrib.auth.password_validation import validate_password
 
-
+# Serializer for changing user password
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)
     new_password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
 
+    # Ensure old password is correct, new passwords match, and new password meets validation criteria
     def validate(self, attrs):
         user = self.context["request"].user
 
@@ -130,6 +134,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
         return attrs
 
+    # Save the new password for the user
     def save(self):
         user = self.context["request"].user
 
