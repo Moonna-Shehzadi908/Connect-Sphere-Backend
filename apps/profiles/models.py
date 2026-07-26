@@ -35,6 +35,20 @@ class Profile(models.Model):
         blank=True,
     )
 
+    location = models.CharField(
+        max_length=150,
+        blank=True,
+    )
+
+    birth_date = models.DateField(
+        blank=True,
+        null=True,
+    )
+
+    is_private = models.BooleanField(
+        default=False,
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True,
     )

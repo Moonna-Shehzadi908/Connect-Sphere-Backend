@@ -1,15 +1,14 @@
 from rest_framework import status
 from rest_framework.parsers import (
+    JSONParser,
     FormParser,
     MultiPartParser,
 )
-
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Post
-from rest_framework.parsers import JSONParser
 
+from .models import Post
 from .serializers import PostSerializer
 from .services import create_post
 
@@ -17,14 +16,14 @@ from .services import create_post
 class CreatePostView(APIView):
 
     permission_classes = [
-        IsAuthenticated
+        IsAuthenticated,
     ]
 
     parser_classes = (
-    JSONParser,
-    MultiPartParser,
-    FormParser,
-)
+        JSONParser,
+        MultiPartParser,
+        FormParser,
+    )
 
     def post(self, request):
 
@@ -55,18 +54,26 @@ class CreatePostView(APIView):
             serializer.data,
             status=status.HTTP_201_CREATED,
         )
-        from .models import Post
+
 
 class PostListView(APIView):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [
+        IsAuthenticated,
+    ]
 
     def get(self, request):
 
-        posts = Post.objects.select_related(
-            "author"
-        ).prefetch_related(
-            "images"
+        posts = (
+            Post.objects
+            .select_related(
+                "author",
+                "author__profile",
+            )
+            .prefetch_related(
+                "images",
+            )
+            .order_by("-created_at")
         )
 
         serializer = PostSerializer(

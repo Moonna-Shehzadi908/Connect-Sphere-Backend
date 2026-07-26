@@ -1,5 +1,3 @@
-import re
-
 from rest_framework import serializers
 
 from .models import (
@@ -25,12 +23,25 @@ class PostSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    # NEW FIELDS
+    username = serializers.CharField(
+        source="author.username",
+        read_only=True,
+    )
+
+    avatar = serializers.ImageField(
+        source="author.profile.avatar",
+        read_only=True,
+    )
+
     class Meta:
 
         model = Post
 
         fields = (
             "id",
+            "username",
+            "avatar",
             "content",
             "visibility",
             "images",
