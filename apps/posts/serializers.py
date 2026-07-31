@@ -3,6 +3,7 @@ from rest_framework import serializers
 from .models import (
     Post,
     PostImage,
+    PostLike,
 )
 
 
@@ -23,7 +24,6 @@ class PostSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
-    # NEW FIELDS
     username = serializers.CharField(
         source="author.username",
         read_only=True,
@@ -34,6 +34,10 @@ class PostSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    likes_count = serializers.SerializerMethodField()
+
+    is_liked = serializers.SerializerMethodField()
+
     class Meta:
 
         model = Post
@@ -42,9 +46,27 @@ class PostSerializer(serializers.ModelSerializer):
             "id",
             "username",
             "avatar",
+            "likes_count",
+            "is_liked",
             "content",
             "visibility",
             "images",
             "created_at",
             "updated_at",
         )
+
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_is_liked(self, obj):
+
+        request = self.context.get("request")
+
+        if request and request.user.is_authenticated:
+
+            return PostLike.objects.filter(
+                post=obj,
+                user=request.user,
+            ).exists()
+
+        return False

@@ -81,7 +81,6 @@ class Hashtag(models.Model):
         return self.name
 
 from django.conf import settings
-
 class Mention(models.Model):
 
     post = models.ForeignKey(
@@ -95,5 +94,43 @@ class Mention(models.Model):
         on_delete=models.CASCADE,
     )
 
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        unique_together = (
+            "post",
+            "user",
+        )
+
     def __str__(self):
-        return f"{self.user.username}"
+        return self.user.username
+
+
+class PostLike(models.Model):
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name="likes",
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="liked_posts",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        unique_together = (
+            "post",
+            "user",
+        )
+
+    def __str__(self):
+        return f"{self.user.username} likes {self.post.id}"

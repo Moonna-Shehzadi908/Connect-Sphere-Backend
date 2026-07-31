@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 from rest_framework import status
 from rest_framework.parsers import (
     JSONParser,
@@ -8,7 +10,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Post
+from .models import (
+    Post,
+    PostLike,
+)
 from .serializers import PostSerializer
 from .services import create_post
 
@@ -48,7 +53,12 @@ class CreatePostView(APIView):
             images=images,
         )
 
-        serializer = PostSerializer(post)
+        serializer = PostSerializer(
+            post,
+            context={
+                "request": request,
+            },
+        )
 
         return Response(
             serializer.data,
@@ -72,6 +82,7 @@ class PostListView(APIView):
             )
             .prefetch_related(
                 "images",
+                "likes",
             )
             .order_by("-created_at")
         )
@@ -79,9 +90,56 @@ class PostListView(APIView):
         serializer = PostSerializer(
             posts,
             many=True,
+            context={
+                "request": request,
+            },
         )
 
         return Response(
             serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class ToggleLikeView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+    ]
+
+    def post(self, request, post_id):
+
+        post = get_object_or_404(
+            Post,
+            id=post_id,
+        )
+
+        like = PostLike.objects.filter(
+            post=post,
+            user=request.user,
+        )
+
+        if like.exists():
+
+            like.delete()
+
+            return Response(
+                {
+                    "liked": False,
+                    "likes_count": post.likes.count(),
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        PostLike.objects.create(
+            post=post,
+            user=request.user,
+        )
+
+        return Response(
+            {
+                "liked": True,
+                "likes_count": post.likes.count(),
+            },
             status=status.HTTP_200_OK,
         )
