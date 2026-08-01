@@ -4,26 +4,55 @@ from .views import (
     CreatePostView,
     PostListView,
     ToggleLikeView,
+    CommentView,
+    DeleteCommentView,
 )
 
 urlpatterns = [
 
+    # ==========================
+    # Create Post
+    # ==========================
     path(
         "",
         CreatePostView.as_view(),
         name="create-post",
     ),
 
+    # ==========================
+    # Feed
+    # ==========================
     path(
         "feed/",
         PostListView.as_view(),
         name="post-feed",
     ),
 
+    # ==========================
+    # Like / Unlike
+    # ==========================
     path(
         "<int:post_id>/like/",
         ToggleLikeView.as_view(),
         name="toggle-like",
+    ),
+
+    # ==========================
+    # Add Comment
+    # ==========================
+    path(
+        "<int:post_id>/comments/",
+        CommentView.as_view(),
+        name="post-comments",
+    ),
+
+    # ==========================
+    # Delete Comment
+    # ==========================
+    path(
+        "comments/<int:comment_id>/delete/",
+        DeleteCommentView.as_view(),
+        name="delete-comment",
     ),
 
 ]

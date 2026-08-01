@@ -13,16 +13,22 @@ from rest_framework.views import APIView
 from .models import (
     Post,
     PostLike,
+    Comment,
 )
-from .serializers import PostSerializer
+from .serializers import (
+    PostSerializer,
+    CommentSerializer,
+)
 from .services import create_post
 
 
+# ==========================
+# CREATE POST
+# ==========================
+
 class CreatePostView(APIView):
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    permission_classes = [IsAuthenticated]
 
     parser_classes = (
         JSONParser,
@@ -66,11 +72,13 @@ class CreatePostView(APIView):
         )
 
 
+# ==========================
+# FEED
+# ==========================
+
 class PostListView(APIView):
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
 
@@ -83,6 +91,9 @@ class PostListView(APIView):
             .prefetch_related(
                 "images",
                 "likes",
+                "comments",
+                "comments__author",
+                "comments__author__profile",
             )
             .order_by("-created_at")
         )
@@ -101,11 +112,13 @@ class PostListView(APIView):
         )
 
 
+# ==========================
+# LIKE
+# ==========================
+
 class ToggleLikeView(APIView):
 
-    permission_classes = [
-        IsAuthenticated,
-    ]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, post_id):
 
@@ -140,6 +153,62 @@ class ToggleLikeView(APIView):
             {
                 "liked": True,
                 "likes_count": post.likes.count(),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+# ==========================
+# COMMENTS
+# ==========================
+
+class CommentView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, post_id):
+
+        post = get_object_or_404(
+            Post,
+            id=post_id,
+        )
+
+        serializer = CommentSerializer(
+            data=request.data,
+        )
+
+        serializer.is_valid(
+            raise_exception=True,
+        )
+
+        serializer.save(
+            post=post,
+            author=request.user,
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class DeleteCommentView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, comment_id):
+
+        comment = get_object_or_404(
+            Comment,
+            id=comment_id,
+            author=request.user,
+        )
+
+        comment.delete()
+
+        return Response(
+            {
+                "message": "Comment deleted."
             },
             status=status.HTTP_200_OK,
         )
