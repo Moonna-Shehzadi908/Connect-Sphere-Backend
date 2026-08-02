@@ -212,3 +212,8 @@ class DeleteCommentView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+        # ==========================
+# Create Comment API
+# Allows authenticated users
+# to add comments on posts.
+# ==========================
