@@ -113,7 +113,7 @@ class PostListView(APIView):
 
 
 # ==========================
-# LIKE
+# LIKE / UNLIKE
 # ==========================
 
 class ToggleLikeView(APIView):
@@ -159,7 +159,33 @@ class ToggleLikeView(APIView):
 
 
 # ==========================
-# COMMENTS
+# DELETE POST
+# ==========================
+
+class DeletePostView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, post_id):
+
+        post = get_object_or_404(
+            Post,
+            id=post_id,
+            author=request.user,
+        )
+
+        post.delete()
+
+        return Response(
+            {
+                "message": "Post deleted successfully."
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+# ==========================
+# ADD COMMENT
 # ==========================
 
 class CommentView(APIView):
@@ -192,6 +218,10 @@ class CommentView(APIView):
         )
 
 
+# ==========================
+# DELETE COMMENT
+# ==========================
+
 class DeleteCommentView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -212,8 +242,3 @@ class DeleteCommentView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-        # ==========================
-# Create Comment API
-# Allows authenticated users
-# to add comments on posts.
-# ==========================

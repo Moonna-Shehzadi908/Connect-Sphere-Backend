@@ -18,6 +18,7 @@ class RegisterView(APIView):
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         user = serializer.save()
 
         return Response(
@@ -51,7 +52,9 @@ class LogoutView(APIView):
         serializer.save()
 
         return Response(
-            {"message": "Logged out successfully."},
+            {
+                "message": "Logged out successfully."
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -71,13 +74,17 @@ class ChangePasswordView(APIView):
     def post(self, request):
         serializer = ChangePasswordSerializer(
             data=request.data,
-            context={"request": request},
+            context={
+                "request": request,
+            },
         )
 
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response(
-            {"message": "Password changed successfully."},
+            {
+                "message": "Password changed successfully."
+            },
             status=status.HTTP_200_OK,
         )

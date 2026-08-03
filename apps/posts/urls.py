@@ -4,6 +4,7 @@ from .views import (
     CreatePostView,
     PostListView,
     ToggleLikeView,
+    DeletePostView,
     CommentView,
     DeleteCommentView,
 )
@@ -18,6 +19,11 @@ urlpatterns = [
         CreatePostView.as_view(),
         name="create-post",
     ),
+    path(
+    "<int:post_id>/delete/",
+    DeletePostView.as_view(),
+    name="delete-post",
+),
 
     # ==========================
     # Feed
