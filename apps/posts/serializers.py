@@ -22,6 +22,13 @@ class PostImageSerializer(serializers.ModelSerializer):
         )
 
 
+# =====================================
+# ConnectSphere Backend
+# Next Improvements:
+# - Share API
+# - Delete comments
+# - Notifications
+# =====================================
 # ==========================
 # COMMENT
 # ==========================
