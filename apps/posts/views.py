@@ -99,3 +99,74 @@ class UserPostsView(ListAPIView):
 
         return get_user_posts(username)
 
+from django.shortcuts import get_object_or_404
+from .permissions import IsPostOwner
+from .services import update_post
+from .models import Post
+
+class UpdatePostView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, post_id):
+
+        post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+
+        content = request.data.get("content", post.content)
+
+        visibility = request.data.get(
+            "visibility",
+            post.visibility,
+        )
+
+        post = update_post(
+            post,
+            content,
+            visibility,
+        )
+
+        serializer = PostSerializer(post)
+
+        return Response(serializer.data)
+
+    def get_permissions(self):
+
+        if self.request.method == "PUT":
+            return [
+                IsAuthenticated(),
+                IsPostOwner(),
+            ]
+
+        return super().get_permissions()
+
+from .services import delete_post
+class DeletePostView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, post_id):
+
+        post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+
+        delete_post(post)
+
+        return Response(
+            {
+                "message": "Post deleted successfully."
+            },
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+    def get_permissions(self):
+
+        if self.request.method == "DELETE":
+            return [
+                IsAuthenticated(),
+                IsPostOwner(),
+            ]
+
+        return super().get_permissions()
