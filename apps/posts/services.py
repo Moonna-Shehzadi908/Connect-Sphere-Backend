@@ -68,3 +68,26 @@ def create_post(
             continue
 
     return post
+
+from django.shortcuts import get_object_or_404
+
+from .models import Post
+
+
+def update_post(post, content, visibility):
+    """
+    Update an existing post.
+    """
+    post.content = content
+    post.visibility = visibility
+    post.is_edited = True
+    post.save()
+
+    return post
+
+
+def delete_post(post):
+    """
+    Delete a post.
+    """
+    post.delete()
