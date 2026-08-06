@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from CS_backend.apps.posts.models import Post
+from apps.posts.models import Post
 
 from .serializers import PostSerializer
 from .services import create_post
