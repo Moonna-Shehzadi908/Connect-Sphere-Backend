@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 
 from rest_framework import serializers
@@ -7,7 +7,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 User = get_user_model()
 
 
-# ---------------- REGISTER ---------------- #
+# ==========================
+# REGISTER
+# ==========================
 
 class RegisterSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
@@ -47,9 +49,27 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
-# ---------------- LOGIN ---------------- #
+# ==========================
+# USER
+# ==========================
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "email",
+        )
+
+
+# ==========================
+# LOGIN
+# ==========================
 
 class LoginSerializer(serializers.Serializer):
+
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
@@ -77,20 +97,10 @@ class LoginSerializer(serializers.Serializer):
             "access": str(refresh.access_token),
         }
 
-# ---------------- USER ---------------- #
 
-class UserSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "username",
-            "email",
-        )
-
-
-# ---------------- LOGOUT ---------------- #
+# ==========================
+# LOGOUT
+# ==========================
 
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
@@ -100,7 +110,9 @@ class LogoutSerializer(serializers.Serializer):
         token.blacklist()
 
 
-# ---------------- CHANGE PASSWORD ---------------- #
+# ==========================
+# CHANGE PASSWORD
+# ==========================
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(write_only=True)

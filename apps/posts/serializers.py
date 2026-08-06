@@ -8,10 +8,6 @@ from .models import (
 )
 
 
-# ==========================
-# POST IMAGE
-# ==========================
-
 class PostImageSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -21,17 +17,6 @@ class PostImageSerializer(serializers.ModelSerializer):
             "image",
         )
 
-
-# =====================================
-# ConnectSphere Backend
-# Next Improvements:
-# - Share API
-# - Delete comments
-# - Notifications
-# =====================================
-# ==========================
-# COMMENT
-# ==========================
 
 class CommentSerializer(serializers.ModelSerializer):
 
@@ -47,7 +32,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-
         fields = (
             "id",
             "username",
@@ -64,9 +48,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "is_edited",
             "created_at",
         )
-# ==========================
-# POST
-# ==========================
+
 
 class PostSerializer(serializers.ModelSerializer):
 
@@ -96,6 +78,10 @@ class PostSerializer(serializers.ModelSerializer):
 
     is_liked = serializers.SerializerMethodField()
 
+    hashtags = serializers.SerializerMethodField()
+
+    mentions = serializers.SerializerMethodField()
+
     class Meta:
 
         model = Post
@@ -104,12 +90,14 @@ class PostSerializer(serializers.ModelSerializer):
             "id",
             "username",
             "avatar",
+            "content",
+            "visibility",
+            "hashtags",
+            "mentions",
+            "images",
             "likes_count",
             "comments_count",
             "is_liked",
-            "content",
-            "visibility",
-            "images",
             "comments",
             "created_at",
             "updated_at",
@@ -133,3 +121,12 @@ class PostSerializer(serializers.ModelSerializer):
             ).exists()
 
         return False
+
+    def get_hashtags(self, obj):
+        return [tag.name for tag in obj.hashtags.all()]
+
+    def get_mentions(self, obj):
+        return [
+            mention.user.username
+            for mention in obj.mentions.all()
+        ]
