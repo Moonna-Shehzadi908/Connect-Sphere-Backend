@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     "apps.profiles",
     "apps.followers",
     "apps.posts",
-    "apps.comments",
     "apps.core",
 ]
 

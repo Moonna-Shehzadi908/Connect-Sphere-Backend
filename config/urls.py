@@ -21,10 +21,7 @@ urlpatterns = [
         include("apps.posts.urls"),
     ),
 
-    path(
-        "api/comments/",
-        include("apps.comments.urls"),
-    ),
+   
 ]
 
 if settings.DEBUG:

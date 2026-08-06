@@ -8,6 +8,10 @@ from .models import (
 )
 
 
+# ==========================
+# POST IMAGE
+# ==========================
+
 class PostImageSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -17,6 +21,10 @@ class PostImageSerializer(serializers.ModelSerializer):
             "image",
         )
 
+
+# ==========================
+# COMMENT
+# ==========================
 
 class CommentSerializer(serializers.ModelSerializer):
 
@@ -32,6 +40,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
+
         fields = (
             "id",
             "username",
@@ -49,6 +58,10 @@ class CommentSerializer(serializers.ModelSerializer):
             "created_at",
         )
 
+
+# ==========================
+# POST
+# ==========================
 
 class PostSerializer(serializers.ModelSerializer):
 
@@ -82,6 +95,16 @@ class PostSerializer(serializers.ModelSerializer):
 
     mentions = serializers.SerializerMethodField()
 
+    is_owner = serializers.SerializerMethodField()
+
+    is_pinned = serializers.BooleanField(
+        read_only=True,
+    )
+
+    is_archived = serializers.BooleanField(
+        read_only=True,
+    )
+
     class Meta:
 
         model = Post
@@ -99,6 +122,9 @@ class PostSerializer(serializers.ModelSerializer):
             "comments_count",
             "is_liked",
             "comments",
+            "is_owner",
+            "is_pinned",
+            "is_archived",
             "created_at",
             "updated_at",
         )
@@ -123,10 +149,22 @@ class PostSerializer(serializers.ModelSerializer):
         return False
 
     def get_hashtags(self, obj):
-        return [tag.name for tag in obj.hashtags.all()]
+        return [
+            tag.name
+            for tag in obj.hashtags.all()
+        ]
 
     def get_mentions(self, obj):
         return [
             mention.user.username
             for mention in obj.mentions.all()
         ]
+
+    def get_is_owner(self, obj):
+
+        request = self.context.get("request")
+
+        if request and request.user.is_authenticated:
+            return obj.author == request.user
+
+        return False
