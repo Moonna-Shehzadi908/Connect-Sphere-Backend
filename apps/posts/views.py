@@ -170,3 +170,80 @@ class DeletePostView(APIView):
             ]
 
         return super().get_permissions()
+
+from .services import (pin_post,unpin_post,archive_post,restore_post,)
+
+class PinPostView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsPostOwner,
+    ]
+
+    def post(self, request, post_id):
+
+        post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+
+        pin_post(post)
+
+        return Response({
+            "message": "Post pinned successfully."
+        })
+    
+class UnpinPostView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsPostOwner,
+    ]
+
+    def post(self, request, post_id):
+
+        post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+
+        unpin_post(post)
+
+        return Response({
+            "message": "Post unpinned successfully."
+        })
+class ArchivePostView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsPostOwner,
+    ]
+
+    def post(self, request, post_id):
+
+        post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+
+        archive_post(post)
+
+        return Response({
+            "message": "Post archived successfully."
+        })
+
+class RestorePostView(APIView):
+
+    permission_classes = [
+        IsAuthenticated,
+        IsPostOwner,
+    ]
+
+    def post(self, request, post_id):
+
+        post = get_object_or_404(Post, id=post_id)
+
+        self.check_object_permissions(request, post)
+
+        restore_post(post)
+
+        return Response({
+            "message": "Post restored successfully."
+        })
