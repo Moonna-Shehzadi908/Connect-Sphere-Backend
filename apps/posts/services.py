@@ -91,3 +91,53 @@ def delete_post(post):
     Delete a post.
     """
     post.delete()
+
+from django.db import transaction
+
+
+@transaction.atomic
+def pin_post(post):
+    """
+    Pin a post and unpin any other posts
+    owned by the same user.
+    """
+
+    Post.objects.filter(
+        author=post.author,
+        is_pinned=True,
+    ).update(is_pinned=False)
+
+    post.is_pinned = True
+    post.save(update_fields=["is_pinned"])
+
+    return post
+
+
+def unpin_post(post):
+    """
+    Remove pinned status.
+    """
+    post.is_pinned = False
+    post.save(update_fields=["is_pinned"])
+
+    return post
+
+
+def archive_post(post):
+    """
+    Archive a post.
+    """
+    post.is_archived = True
+    post.save(update_fields=["is_archived"])
+
+    return post
+
+
+def restore_post(post):
+    """
+    Restore an archived post.
+    """
+    post.is_archived = False
+    post.save(update_fields=["is_archived"])
+
+    return post
