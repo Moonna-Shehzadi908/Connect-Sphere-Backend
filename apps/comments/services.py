@@ -24,7 +24,6 @@ def create_comment(
     parent = None
 
     if parent_id:
-
         parent = get_object_or_404(
             Comment,
             id=parent_id,
@@ -44,3 +43,26 @@ def create_comment(
     )
 
     return comment
+
+
+def delete_comment(
+    *,
+    comment_id,
+    user,
+):
+    """
+    Delete a comment only if
+    the logged-in user owns it.
+    """
+
+    comment = get_object_or_404(
+        Comment,
+        id=comment_id,
+    )
+
+    if comment.author != user:
+        raise ValueError(
+            "You can only delete your own comment."
+        )
+
+    comment.delete()

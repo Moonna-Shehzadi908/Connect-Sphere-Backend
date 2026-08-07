@@ -44,9 +44,9 @@ from .services import (
 )
 
 
-# ==========================
+# ==========================================================
 # CREATE POST
-# ==========================
+# ==========================================================
 
 class CreatePostView(APIView):
 
@@ -92,9 +92,11 @@ class CreatePostView(APIView):
             serializer.data,
             status=status.HTTP_201_CREATED,
         )
-        # ==========================
+
+
+# ==========================================================
 # TIMELINE
-# ==========================
+# ==========================================================
 
 class TimelineView(ListAPIView):
 
@@ -106,10 +108,18 @@ class TimelineView(ListAPIView):
     def get_queryset(self):
         return get_timeline()
 
+    def get_serializer_context(self):
 
-# ==========================
+        context = super().get_serializer_context()
+
+        context["request"] = self.request
+
+        return context
+
+
+# ==========================================================
 # FEED
-# ==========================
+# ==========================================================
 
 class PostListView(APIView):
 
@@ -136,7 +146,9 @@ class PostListView(APIView):
         serializer = PostSerializer(
             posts,
             many=True,
-            context={"request": request},
+            context={
+                "request": request,
+            },
         )
 
         return Response(
@@ -145,9 +157,9 @@ class PostListView(APIView):
         )
 
 
-# ==========================
+# ==========================================================
 # POST DETAIL
-# ==========================
+# ==========================================================
 
 class PostDetailView(APIView):
 
@@ -156,22 +168,31 @@ class PostDetailView(APIView):
     def get(self, request, post_id):
 
         try:
+
             post = get_post(post_id)
 
         except Post.DoesNotExist:
-            raise Http404("Post not found.")
+
+            raise Http404(
+                "Post not found."
+            )
 
         serializer = PostSerializer(
             post,
-            context={"request": request},
+            context={
+                "request": request,
+            },
         )
 
-        return Response(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
 
-# ==========================
+# ==========================================================
 # USER POSTS
-# ==========================
+# ==========================================================
 
 class UserPostsView(ListAPIView):
 
@@ -186,10 +207,18 @@ class UserPostsView(ListAPIView):
 
         return get_user_posts(username)
 
+    def get_serializer_context(self):
 
-# ==========================
+        context = super().get_serializer_context()
+
+        context["request"] = self.request
+
+        return context
+
+
+# ==========================================================
 # LIKE / UNLIKE
-# ==========================
+# ==========================================================
 
 class ToggleLikeView(APIView):
 
@@ -197,7 +226,10 @@ class ToggleLikeView(APIView):
 
     def post(self, request, post_id):
 
-        post = get_object_or_404(Post, id=post_id)
+        post = get_object_or_404(
+            Post,
+            id=post_id,
+        )
 
         like = PostLike.objects.filter(
             post=post,
@@ -212,7 +244,8 @@ class ToggleLikeView(APIView):
                 {
                     "liked": False,
                     "likes_count": post.likes.count(),
-                }
+                },
+                status=status.HTTP_200_OK,
             )
 
         PostLike.objects.create(
@@ -224,13 +257,14 @@ class ToggleLikeView(APIView):
             {
                 "liked": True,
                 "likes_count": post.likes.count(),
-            }
+            },
+            status=status.HTTP_200_OK,
         )
 
 
-# ==========================
+# ==========================================================
 # ADD COMMENT
-# ==========================
+# ==========================================================
 
 class CommentView(APIView):
 
@@ -238,11 +272,21 @@ class CommentView(APIView):
 
     def post(self, request, post_id):
 
-        post = get_object_or_404(Post, id=post_id)
+        post = get_object_or_404(
+            Post,
+            id=post_id,
+        )
 
-        serializer = CommentSerializer(data=request.data)
+        serializer = CommentSerializer(
+            data=request.data,
+            context={
+                "request": request,
+            },
+        )
 
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(
+            raise_exception=True
+        )
 
         serializer.save(
             post=post,
@@ -255,9 +299,9 @@ class CommentView(APIView):
         )
 
 
-# ==========================
+# ==========================================================
 # DELETE COMMENT
-# ==========================
+# ==========================================================
 
 class DeleteCommentView(APIView):
 
@@ -276,197 +320,14 @@ class DeleteCommentView(APIView):
         return Response(
             {
                 "message": "Comment deleted."
-            }
-        )
-        # ==========================
-# TIMELINE
-# ==========================
-
-class TimelineView(ListAPIView):
-
-    permission_classes = [IsAuthenticated]
-
-    serializer_class = PostSerializer
-    pagination_class = DefaultPagination
-
-    def get_queryset(self):
-        return get_timeline()
-
-
-# ==========================
-# FEED
-# ==========================
-
-class PostListView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-
-        posts = (
-            Post.objects
-            .select_related(
-                "author",
-                "author__profile",
-            )
-            .prefetch_related(
-                "images",
-                "likes",
-                "comments",
-                "comments__author",
-                "comments__author__profile",
-            )
-            .order_by("-created_at")
-        )
-
-        serializer = PostSerializer(
-            posts,
-            many=True,
-            context={"request": request},
-        )
-
-        return Response(
-            serializer.data,
+            },
             status=status.HTTP_200_OK,
         )
 
 
-# ==========================
-# POST DETAIL
-# ==========================
-
-class PostDetailView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, post_id):
-
-        try:
-            post = get_post(post_id)
-
-        except Post.DoesNotExist:
-            raise Http404("Post not found.")
-
-        serializer = PostSerializer(
-            post,
-            context={"request": request},
-        )
-
-        return Response(serializer.data)
-
-
-# ==========================
-# USER POSTS
-# ==========================
-
-class UserPostsView(ListAPIView):
-
-    permission_classes = [IsAuthenticated]
-
-    serializer_class = PostSerializer
-    pagination_class = DefaultPagination
-
-    def get_queryset(self):
-
-        username = self.kwargs["username"]
-
-        return get_user_posts(username)
-
-
-# ==========================
-# LIKE / UNLIKE
-# ==========================
-
-class ToggleLikeView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, post_id):
-
-        post = get_object_or_404(Post, id=post_id)
-
-        like = PostLike.objects.filter(
-            post=post,
-            user=request.user,
-        )
-
-        if like.exists():
-
-            like.delete()
-
-            return Response(
-                {
-                    "liked": False,
-                    "likes_count": post.likes.count(),
-                }
-            )
-
-        PostLike.objects.create(
-            post=post,
-            user=request.user,
-        )
-
-        return Response(
-            {
-                "liked": True,
-                "likes_count": post.likes.count(),
-            }
-        )
-
-
-# ==========================
-# ADD COMMENT
-# ==========================
-
-class CommentView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, post_id):
-
-        post = get_object_or_404(Post, id=post_id)
-
-        serializer = CommentSerializer(data=request.data)
-
-        serializer.is_valid(raise_exception=True)
-
-        serializer.save(
-            post=post,
-            author=request.user,
-        )
-
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-        )
-
-
-# ==========================
-# DELETE COMMENT
-# ==========================
-
-class DeleteCommentView(APIView):
-
-    permission_classes = [IsAuthenticated]
-
-    def delete(self, request, comment_id):
-
-        comment = get_object_or_404(
-            Comment,
-            id=comment_id,
-            author=request.user,
-        )
-
-        comment.delete()
-
-        return Response(
-            {
-                "message": "Comment deleted."
-            }
-        )
-        # ==========================
+# ==========================================================
 # UPDATE POST
-# ==========================
+# ==========================================================
 
 class UpdatePostView(APIView):
 
@@ -482,7 +343,10 @@ class UpdatePostView(APIView):
             id=post_id,
         )
 
-        self.check_object_permissions(request, post)
+        self.check_object_permissions(
+            request,
+            post,
+        )
 
         content = request.data.get(
             "content",
@@ -513,9 +377,9 @@ class UpdatePostView(APIView):
         )
 
 
-# ==========================
+# ==========================================================
 # DELETE POST
-# ==========================
+# ==========================================================
 
 class DeletePostView(APIView):
 
@@ -531,7 +395,10 @@ class DeletePostView(APIView):
             id=post_id,
         )
 
-        self.check_object_permissions(request, post)
+        self.check_object_permissions(
+            request,
+            post,
+        )
 
         delete_post(post)
 
@@ -543,9 +410,9 @@ class DeletePostView(APIView):
         )
 
 
-# ==========================
+# ==========================================================
 # PIN POST
-# ==========================
+# ==========================================================
 
 class PinPostView(APIView):
 
@@ -561,20 +428,24 @@ class PinPostView(APIView):
             id=post_id,
         )
 
-        self.check_object_permissions(request, post)
+        self.check_object_permissions(
+            request,
+            post,
+        )
 
         pin_post(post)
 
         return Response(
             {
                 "message": "Post pinned successfully."
-            }
+            },
+            status=status.HTTP_200_OK,
         )
 
 
-# ==========================
+# ==========================================================
 # UNPIN POST
-# ==========================
+# ==========================================================
 
 class UnpinPostView(APIView):
 
@@ -590,20 +461,24 @@ class UnpinPostView(APIView):
             id=post_id,
         )
 
-        self.check_object_permissions(request, post)
+        self.check_object_permissions(
+            request,
+            post,
+        )
 
         unpin_post(post)
 
         return Response(
             {
                 "message": "Post unpinned successfully."
-            }
+            },
+            status=status.HTTP_200_OK,
         )
 
 
-# ==========================
+# ==========================================================
 # ARCHIVE POST
-# ==========================
+# ==========================================================
 
 class ArchivePostView(APIView):
 
@@ -619,20 +494,24 @@ class ArchivePostView(APIView):
             id=post_id,
         )
 
-        self.check_object_permissions(request, post)
+        self.check_object_permissions(
+            request,
+            post,
+        )
 
         archive_post(post)
 
         return Response(
             {
                 "message": "Post archived successfully."
-            }
+            },
+            status=status.HTTP_200_OK,
         )
 
 
-# ==========================
+# ==========================================================
 # RESTORE POST
-# ==========================
+# ==========================================================
 
 class RestorePostView(APIView):
 
@@ -648,12 +527,16 @@ class RestorePostView(APIView):
             id=post_id,
         )
 
-        self.check_object_permissions(request, post)
+        self.check_object_permissions(
+            request,
+            post,
+        )
 
         restore_post(post)
 
         return Response(
             {
                 "message": "Post restored successfully."
-            }
+            },
+            status=status.HTTP_200_OK,
         )

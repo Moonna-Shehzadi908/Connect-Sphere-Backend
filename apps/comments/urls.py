@@ -1,6 +1,10 @@
 from django.urls import path
 
-from .views import CreateCommentView
+from .views import (
+    CreateCommentView,
+    DeleteCommentView,
+)
+
 
 urlpatterns = [
 
@@ -8,6 +12,12 @@ urlpatterns = [
         "",
         CreateCommentView.as_view(),
         name="create-comment",
+    ),
+
+    path(
+        "<int:comment_id>/delete/",
+        DeleteCommentView.as_view(),
+        name="delete-comment",
     ),
 
 ]

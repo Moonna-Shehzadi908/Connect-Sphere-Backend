@@ -16,6 +16,7 @@ class PostImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PostImage
+
         fields = (
             "id",
             "image",
@@ -38,6 +39,8 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    is_owner = serializers.SerializerMethodField()
+
     class Meta:
         model = Comment
 
@@ -48,6 +51,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "content",
             "is_edited",
             "created_at",
+            "is_owner",
         )
 
         read_only_fields = (
@@ -56,7 +60,17 @@ class CommentSerializer(serializers.ModelSerializer):
             "avatar",
             "is_edited",
             "created_at",
+            "is_owner",
         )
+
+    def get_is_owner(self, obj):
+
+        request = self.context.get("request")
+
+        if request and request.user.is_authenticated:
+            return obj.author == request.user
+
+        return False
 
 
 # ==========================
@@ -106,7 +120,6 @@ class PostSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-
         model = Post
 
         fields = (
@@ -130,9 +143,11 @@ class PostSerializer(serializers.ModelSerializer):
         )
 
     def get_likes_count(self, obj):
+
         return obj.likes.count()
 
     def get_comments_count(self, obj):
+
         return obj.comments.count()
 
     def get_is_liked(self, obj):
@@ -149,12 +164,14 @@ class PostSerializer(serializers.ModelSerializer):
         return False
 
     def get_hashtags(self, obj):
+
         return [
             tag.name
             for tag in obj.hashtags.all()
         ]
 
     def get_mentions(self, obj):
+
         return [
             mention.user.username
             for mention in obj.mentions.all()
