@@ -82,3 +82,19 @@ class DeleteNotificationView(APIView):
         return Response(
             status=status.HTTP_204_NO_CONTENT
         )
+
+class UnreadNotificationCountView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        count = request.user.notifications.filter(
+            is_read=False
+        ).count()
+
+        return Response(
+            {
+                "unread_count": count
+            }
+        )
