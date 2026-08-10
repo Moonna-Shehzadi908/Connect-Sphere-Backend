@@ -48,3 +48,20 @@ class MarkNotificationReadView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+class MarkAllNotificationsReadView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+
+        updated = mark_all_notifications_as_read(
+            request.user
+        )
+
+        return Response(
+            {
+                "updated": updated
+            },
+            status=status.HTTP_200_OK,
+        )
