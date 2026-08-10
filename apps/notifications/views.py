@@ -65,3 +65,20 @@ class MarkAllNotificationsReadView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+class DeleteNotificationView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, notification_id):
+
+        notification = get_notification(
+            notification_id,
+            request.user,
+        )
+
+        notification.delete()
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT
+        )
