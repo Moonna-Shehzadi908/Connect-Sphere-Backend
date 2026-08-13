@@ -20,7 +20,10 @@ urlpatterns = [
         "api/posts/",
         include("apps.posts.urls"),
     ),
-
+path(
+    "api/notifications/",
+    include("apps.notifications.urls"),
+),
    
 ]
 

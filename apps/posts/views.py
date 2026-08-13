@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 
 from apps.core.pagination import DefaultPagination
+from apps.notifications.services import create_notification
 
 from .models import (
     Post,
@@ -106,6 +107,7 @@ class TimelineView(ListAPIView):
     pagination_class = DefaultPagination
 
     def get_queryset(self):
+
         return get_timeline()
 
     def get_serializer_context(self):
@@ -236,6 +238,10 @@ class ToggleLikeView(APIView):
             user=request.user,
         )
 
+        # ==========================
+        # UNLIKE
+        # ==========================
+
         if like.exists():
 
             like.delete()
@@ -248,9 +254,27 @@ class ToggleLikeView(APIView):
                 status=status.HTTP_200_OK,
             )
 
+        # ==========================
+        # LIKE
+        # ==========================
+
         PostLike.objects.create(
             post=post,
             user=request.user,
+        )
+
+        # ==========================
+        # CREATE NOTIFICATION
+        # ==========================
+
+        create_notification(
+            recipient=post.author,
+            sender=request.user,
+            notification_type="LIKE",
+            message=(
+                f"{request.user.username} "
+                f"liked your post."
+            ),
         )
 
         return Response(
@@ -288,9 +312,27 @@ class CommentView(APIView):
             raise_exception=True
         )
 
+        # ==========================
+        # SAVE COMMENT
+        # ==========================
+
         serializer.save(
             post=post,
             author=request.user,
+        )
+
+        # ==========================
+        # CREATE NOTIFICATION
+        # ==========================
+
+        create_notification(
+            recipient=post.author,
+            sender=request.user,
+            notification_type="COMMENT",
+            message=(
+                f"{request.user.username} "
+                f"commented on your post."
+            ),
         )
 
         return Response(

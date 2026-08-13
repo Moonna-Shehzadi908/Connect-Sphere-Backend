@@ -8,35 +8,35 @@ from .views import (
     UnreadNotificationCountView,
 )
 
-urlpatterns = [
 
+urlpatterns = [
     path(
         "",
         NotificationListView.as_view(),
-        name="notifications",
-    ),
-
-    path(
-        "<int:notification_id>/read/",
-        MarkNotificationReadView.as_view(),
-        name="notification-read",
-    ),
-
-    path(
-        "read-all/",
-        MarkAllNotificationsReadView.as_view(),
-        name="notifications-read-all",
-    ),
-
-    path(
-        "<int:notification_id>/",
-        DeleteNotificationView.as_view(),
-        name="notification-delete",
+        name="notification-list",
     ),
 
     path(
         "unread-count/",
         UnreadNotificationCountView.as_view(),
         name="notification-unread-count",
+    ),
+
+    path(
+        "<int:notification_id>/read/",
+        MarkNotificationReadView.as_view(),
+        name="notification-mark-read",
+    ),
+
+    path(
+        "read-all/",
+        MarkAllNotificationsReadView.as_view(),
+        name="notification-read-all",
+    ),
+
+    path(
+        "<int:notification_id>/",
+        DeleteNotificationView.as_view(),
+        name="notification-delete",
     ),
 ]
