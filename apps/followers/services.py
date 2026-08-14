@@ -1,9 +1,16 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+import random
 
 from .models import Follow
 
+
 User = get_user_model()
+
+
+# ==========================================================
+# FOLLOW USER
+# ==========================================================
 
 def follow_user(follower, username):
     """
@@ -19,7 +26,9 @@ def follow_user(follower, username):
     """
 
     try:
-        following = User.objects.get(username=username)
+        following = User.objects.get(
+            username=username
+        )
 
     except User.DoesNotExist:
         return {
@@ -56,13 +65,20 @@ def follow_user(follower, username):
         "status": 201,
     }
 
+
+# ==========================================================
+# UNFOLLOW USER
+# ==========================================================
+
 def unfollow_user(follower, username):
     """
     Remove a follow relationship.
     """
 
     try:
-        following = User.objects.get(username=username)
+        following = User.objects.get(
+            username=username
+        )
 
     except User.DoesNotExist:
         return {
@@ -72,12 +88,14 @@ def unfollow_user(follower, username):
         }
 
     try:
+
         follow = Follow.objects.get(
             follower=follower,
             following=following,
         )
 
     except Follow.DoesNotExist:
+
         return {
             "success": False,
             "message": "You are not following this user.",
@@ -92,57 +110,114 @@ def unfollow_user(follower, username):
         "status": 200,
     }
 
+
+# ==========================================================
+# GET FOLLOWERS
+# ==========================================================
+
 def get_followers(username):
     """
     Return all followers of a user.
     """
 
     try:
-        user = User.objects.get(username=username)
+        user = User.objects.get(
+            username=username
+        )
 
     except User.DoesNotExist:
+
         return {
             "success": False,
             "message": "User does not exist.",
             "status": 404,
         }
 
-    followers = User.objects.filter(
-        following__following=user
-    ).select_related("profile")
+    # Find Follow records where this user
+    # is the person being followed.
+
+    follows = Follow.objects.filter(
+        following=user
+    ).select_related(
+        "follower",
+        "follower__profile",
+    )
+
+    # Get the actual User objects
+    # who follow this user.
+
+    followers = [
+        follow.follower
+        for follow in follows
+    ]
 
     return {
         "success": True,
         "followers": followers,
         "status": 200,
     }
+
+
+# ==========================================================
+# GET FOLLOWING
+# ==========================================================
+
 def get_following(username):
+    """
+    Return all users that this user is following.
+    """
 
     try:
-        user = User.objects.get(username=username)
+        user = User.objects.get(
+            username=username
+        )
 
     except User.DoesNotExist:
+
         return {
             "success": False,
             "message": "User does not exist.",
             "status": 404,
         }
 
-    following = User.objects.filter(
-        followers__follower=user
-    ).select_related("profile")
+    # Find Follow records where this user
+    # is the person doing the following.
+
+    follows = Follow.objects.filter(
+        follower=user
+    ).select_related(
+        "following",
+        "following__profile",
+    )
+
+    # Get the actual User objects
+    # being followed.
+
+    following = [
+        follow.following
+        for follow in follows
+    ]
 
     return {
         "success": True,
         "following": following,
         "status": 200,
     }
+
+
+# ==========================================================
+# PROFILE FOLLOW STATS
+# ==========================================================
+
 def get_profile_stats(username):
 
     try:
-        user = User.objects.get(username=username)
+        user = User.objects.get(
+            username=username
+        )
 
     except User.DoesNotExist:
+
         return {
             "success": False,
             "message": "User does not exist.",
@@ -163,9 +238,10 @@ def get_profile_stats(username):
         "status": 200,
     }
 
-from django.db.models import Q
-import random
 
+# ==========================================================
+# FRIEND SUGGESTIONS
+# ==========================================================
 
 def get_friend_suggestions(user):
 
