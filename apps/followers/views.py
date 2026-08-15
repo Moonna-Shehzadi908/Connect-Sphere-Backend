@@ -1,16 +1,31 @@
+
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import FollowUserSerializer, UserFollowerSerializer
-from .services import follow_user, get_followers, get_following, get_friend_suggestions, get_profile_stats
+from apps.notifications.services import create_notification
 
+from .serializers import (
+    FollowUserSerializer,
+    UserFollowerSerializer,
+)
+
+from .services import (
+    follow_user,
+    unfollow_user,
+    get_followers,
+    get_following,
+    get_friend_suggestions,
+    get_profile_stats,
+)
+
+
+# ==========================================================
+# FOLLOW USER
+# ==========================================================
 
 class FollowUserView(APIView):
-    """
-    Follow another user.
-    """
 
     permission_classes = [IsAuthenticated]
 
@@ -29,7 +44,26 @@ class FollowUserView(APIView):
                 status=result["status"],
             )
 
-        serializer = FollowUserSerializer(result["follow"])
+        serializer = FollowUserSerializer(
+            result["follow"],
+            context={"request": request},
+        )
+
+        # ==================================================
+        # CREATE FOLLOW NOTIFICATION
+        # ==================================================
+
+        follow = result["follow"]
+
+        create_notification(
+            recipient=follow.following,
+            sender=request.user,
+            notification_type="FOLLOW",
+            message=(
+                f"{request.user.username} "
+                f"started following you."
+            ),
+        )
 
         return Response(
             {
@@ -39,12 +73,12 @@ class FollowUserView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
-from .services import follow_user, unfollow_user
+
+# ==========================================================
+# UNFOLLOW USER
+# ==========================================================
 
 class UnfollowUserView(APIView):
-    """
-    Unfollow another user.
-    """
 
     permission_classes = [IsAuthenticated]
 
@@ -69,6 +103,12 @@ class UnfollowUserView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+# ==========================================================
+# FOLLOWERS LIST
+# ==========================================================
+
 class FollowersListView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -79,19 +119,28 @@ class FollowersListView(APIView):
 
         if not result["success"]:
             return Response(
-                {"message": result["message"]},
+                {
+                    "message": result["message"]
+                },
                 status=result["status"],
             )
 
         serializer = UserFollowerSerializer(
             result["followers"],
             many=True,
+            context={"request": request},
         )
 
         return Response(
             serializer.data,
             status=status.HTTP_200_OK,
         )
+
+
+# ==========================================================
+# FOLLOWING LIST
+# ==========================================================
+
 class FollowingListView(APIView):
 
     permission_classes = [IsAuthenticated]
@@ -102,16 +151,27 @@ class FollowingListView(APIView):
 
         if not result["success"]:
             return Response(
-                {"message": result["message"]},
+                {
+                    "message": result["message"]
+                },
                 status=result["status"],
             )
 
         serializer = UserFollowerSerializer(
             result["following"],
             many=True,
+            context={"request": request},
         )
 
-        return Response(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+
+# ==========================================================
+# PROFILE STATS
+# ==========================================================
 
 class ProfileStatsView(APIView):
 
@@ -123,11 +183,21 @@ class ProfileStatsView(APIView):
 
         if not result["success"]:
             return Response(
-                {"message": result["message"]},
+                {
+                    "message": result["message"]
+                },
                 status=result["status"],
             )
 
-        return Response(result["stats"])
+        return Response(
+            result["stats"],
+            status=status.HTTP_200_OK,
+        )
+
+
+# ==========================================================
+# FRIEND SUGGESTIONS
+# ==========================================================
 
 class FriendSuggestionsView(APIView):
 
@@ -135,11 +205,18 @@ class FriendSuggestionsView(APIView):
 
     def get(self, request):
 
-        users = get_friend_suggestions(request.user)
+        users = get_friend_suggestions(
+            request.user
+        )
 
         serializer = UserFollowerSerializer(
             users,
             many=True,
+            context={"request": request},
         )
 
-        return Response(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
