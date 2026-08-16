@@ -54,6 +54,14 @@ urlpatterns = [
         "api/notifications/",
         include("apps.notifications.urls"),
     ),
+        # =========================
+    # MESSAGING
+    # =========================
+
+    path(
+        "api/messaging/",
+        include("apps.messaging.urls"),
+    ),
 ]
 
 
