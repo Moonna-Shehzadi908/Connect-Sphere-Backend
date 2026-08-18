@@ -1,6 +1,9 @@
 from pathlib import Path
+
 from dotenv import load_dotenv
+
 import os
+
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,6 +22,7 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 # ==========================
 
 INSTALLED_APPS = [
+
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -37,39 +41,69 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.notifications",
     "apps.messaging",
-]
 
+    # Existing search feature
+    "apps.search",
+
+    # New moderation feature
+    "apps.moderation",
+]
 
 
 # ==========================
 # Middleware
 # ==========================
+
 MIDDLEWARE = [
+
     "corsheaders.middleware.CorsMiddleware",
+
     "django.middleware.security.SecurityMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
+
     "django.middleware.common.CommonMiddleware",
+
     "django.middleware.csrf.CsrfViewMiddleware",
+
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+
     "django.contrib.messages.middleware.MessageMiddleware",
+
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+
 ROOT_URLCONF = "config.urls"
 
+
 TEMPLATES = [
+
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
+
         "DIRS": [],
+
         "APP_DIRS": True,
+
         "OPTIONS": {
+
             "context_processors": [
+
                 "django.template.context_processors.request",
+
                 "django.contrib.auth.context_processors.auth",
+
                 "django.contrib.messages.context_processors.messages",
+
             ],
+
         },
+
     },
+
 ]
+
 
 WSGI_APPLICATION = "config.wsgi.application"
 
@@ -79,10 +113,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 # ==========================
 
 DATABASES = {
+
     "default": {
+
         "ENGINE": "django.db.backends.sqlite3",
+
         "NAME": BASE_DIR / "db.sqlite3",
+
     }
+
 }
 
 
@@ -91,18 +130,27 @@ DATABASES = {
 # ==========================
 
 AUTH_PASSWORD_VALIDATORS = [
+
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME":
+        "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
+
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME":
+        "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
+
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME":
+        "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
+
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME":
+        "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+
 ]
 
 
@@ -124,19 +172,24 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 
 
-
 # ==========================
 # Django REST Framework
 # ==========================
 
 REST_FRAMEWORK = {
+
     "DEFAULT_AUTHENTICATION_CLASSES": (
+
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+
     ),
 
     "DEFAULT_PERMISSION_CLASSES": (
+
         "rest_framework.permissions.IsAuthenticated",
+
     ),
+
 }
 
 
@@ -155,6 +208,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": False,
 
     "UPDATE_LAST_LOGIN": True,
+
 }
 
 
@@ -163,6 +217,7 @@ SIMPLE_JWT = {
 # ==========================
 
 MEDIA_URL = "/media/"
+
 MEDIA_ROOT = BASE_DIR / "media"
 
 
@@ -171,10 +226,15 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ==========================
 
 CORS_ALLOWED_ORIGINS = [
+
     "http://localhost:5173",
+
     "http://127.0.0.1:5173",
+
     "http://localhost:5174",
+
     "http://127.0.0.1:5174",
+
 ]
 
 CORS_ALLOW_CREDENTIALS = True
