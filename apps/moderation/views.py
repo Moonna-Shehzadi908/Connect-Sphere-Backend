@@ -6,7 +6,13 @@ from rest_framework.views import APIView
 
 from .serializers import CreateReportSerializer
 from .services import create_report
+from rest_framework.generics import ListAPIView
 
+from apps.core.pagination import DefaultPagination
+
+from .permissions import IsModerator
+from .selectors import get_reports
+from .serializers import ReportListSerializer
 
 class CreateReportView(APIView):
 
@@ -37,3 +43,24 @@ class CreateReportView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+
+
+class ReportListView(ListAPIView):
+
+    permission_classes = [
+        IsModerator
+    ]
+
+    serializer_class = ReportListSerializer
+
+    pagination_class = DefaultPagination
+
+    def get_queryset(self):
+
+        status = self.request.query_params.get(
+            "status"
+        )
+
+        return get_reports(status)

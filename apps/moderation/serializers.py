@@ -52,3 +52,28 @@ class CreateReportSerializer(serializers.Serializer):
             )
 
         return attrs
+
+class ReportListSerializer(serializers.ModelSerializer):
+
+    reporter = serializers.CharField(
+        source="reporter.username",
+        read_only=True,
+    )
+
+    reviewed_by = serializers.CharField(
+        source="reviewed_by.username",
+        read_only=True,
+    )
+
+    class Meta:
+
+        model = Report
+
+        fields = (
+            "id",
+            "reporter",
+            "reason",
+            "status",
+            "created_at",
+            "reviewed_by",
+        )
