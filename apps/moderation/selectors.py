@@ -1,5 +1,6 @@
 from .models import Report
-
+from django.shortcuts import get_object_or_404
+from .models import Report
 
 def get_reports(status=None):
 
@@ -22,3 +23,19 @@ def get_reports(status=None):
         )
 
     return queryset
+
+
+
+
+def get_report(report_id):
+
+    return get_object_or_404(
+        Report.objects.select_related(
+            "reporter",
+            "reported_user",
+            "reported_post__author",
+            "reported_comment__author",
+            "reviewed_by",
+        ),
+        id=report_id,
+    )

@@ -13,6 +13,9 @@ from apps.core.pagination import DefaultPagination
 from .permissions import IsModerator
 from .selectors import get_reports
 from .serializers import ReportListSerializer
+from rest_framework.generics import RetrieveAPIView
+
+from .serializers import ReportDetailSerializer
 
 class CreateReportView(APIView):
 
@@ -64,3 +67,19 @@ class ReportListView(ListAPIView):
         )
 
         return get_reports(status)
+
+class ReportDetailView(RetrieveAPIView):
+
+    permission_classes = [
+        IsModerator
+    ]
+
+    serializer_class = ReportDetailSerializer
+
+    lookup_url_kwarg = "report_id"
+
+    def get_object(self):
+
+        return get_report(
+            self.kwargs["report_id"]
+        )

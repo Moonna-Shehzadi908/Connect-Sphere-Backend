@@ -4,6 +4,8 @@ from .models import Report
 from apps.posts.models import Post
 from apps.comments.models import Comment
 from django.contrib.auth import get_user_model
+from apps.posts.models import Post
+from apps.comments.models import Comment
 
 User = get_user_model()
 
@@ -76,4 +78,81 @@ class ReportListSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
             "reviewed_by",
+        )
+
+class SimpleUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = User
+
+        fields = (
+            "id",
+            "username",
+        )
+
+
+class SimplePostSerializer(serializers.ModelSerializer):
+
+    author = serializers.CharField(
+        source="author.username",
+        read_only=True,
+    )
+
+    class Meta:
+
+        model = Post
+
+        fields = (
+            "id",
+            "content",
+            "author",
+        )
+
+class SimpleCommentSerializer(serializers.ModelSerializer):
+
+    author = serializers.CharField(
+        source="author.username",
+        read_only=True,
+    )
+
+    class Meta:
+
+        model = Comment
+
+        fields = (
+            "id",
+            "content",
+            "author",
+        )
+
+class ReportDetailSerializer(serializers.ModelSerializer):
+
+    reporter = SimpleUserSerializer()
+
+    reported_user = SimpleUserSerializer()
+
+    reported_post = SimplePostSerializer()
+
+    reported_comment = SimpleCommentSerializer()
+
+    reviewed_by = SimpleUserSerializer()
+
+    class Meta:
+
+        model = Report
+
+        fields = (
+            "id",
+            "reporter",
+            "reported_user",
+            "reported_post",
+            "reported_comment",
+            "reason",
+            "description",
+            "status",
+            "reviewed_by",
+            "review_note",
+            "created_at",
+            "reviewed_at",
         )
