@@ -5,6 +5,7 @@ from django.db import models
 from apps.posts.models import Post
 from apps.comments.models import Comment
 
+from django.core.exceptions import ValidationError
 
 class Report(models.Model):
 
@@ -92,3 +93,29 @@ class Report(models.Model):
 
     def __str__(self):
         return f"Report #{self.id} ({self.status})"
+
+    def clean(self):
+
+        targets = [
+            self.reported_user,
+            self.reported_post,
+            self.reported_comment,
+        ]
+
+        selected_targets = sum(
+            target is not None
+            for target in targets
+        )
+
+        if selected_targets != 1:
+            raise ValidationError(
+                "A report must target exactly one object."
+            )
+    def save(self, *args, **kwargs):
+
+        self.full_clean()
+
+        super().save(
+            *args,
+            **kwargs,
+        )

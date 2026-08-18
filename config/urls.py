@@ -54,7 +54,8 @@ urlpatterns = [
         "api/notifications/",
         include("apps.notifications.urls"),
     ),
-        # =========================
+
+    # =========================
     # MESSAGING
     # =========================
 
@@ -62,14 +63,24 @@ urlpatterns = [
         "api/messaging/",
         include("apps.messaging.urls"),
     ),
-    # =========================
-# SEARCH
-# =========================
 
-path(
-    "api/search/",
-    include("apps.search.urls"),
-),
+    # =========================
+    # SEARCH
+    # =========================
+
+    path(
+        "api/search/",
+        include("apps.search.urls"),
+    ),
+
+    # =========================
+    # MODERATION
+    # =========================
+
+    path(
+        "api/moderation/",
+        include("apps.moderation.urls"),
+    ),
 ]
 
 
