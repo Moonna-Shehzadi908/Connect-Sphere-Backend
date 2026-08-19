@@ -119,3 +119,26 @@ class Report(models.Model):
             *args,
             **kwargs,
         )
+
+class UserWarning(models.Model):
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="warnings",
+    )
+
+    moderator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="issued_warnings",
+    )
+
+    reason = models.CharField(
+        max_length=255,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )

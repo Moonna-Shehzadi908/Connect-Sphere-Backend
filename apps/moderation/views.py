@@ -11,12 +11,14 @@ from rest_framework.generics import ListAPIView
 from apps.core.pagination import DefaultPagination
 
 from .permissions import IsModerator
-from .selectors import get_reports
+from .selectors import get_report, get_reports
 from .serializers import ReportListSerializer
 from rest_framework.generics import RetrieveAPIView
 
 from .serializers import ReportDetailSerializer
 
+from .services import perform_moderation_action
+from .serializers import ModerationActionSerializer
 class CreateReportView(APIView):
 
     permission_classes = [
@@ -46,9 +48,6 @@ class CreateReportView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
-
-
-
 
 class ReportListView(ListAPIView):
 
@@ -82,4 +81,37 @@ class ReportDetailView(RetrieveAPIView):
 
         return get_report(
             self.kwargs["report_id"]
+        )
+
+class ModerationActionView(APIView):
+
+    permission_classes = [
+        IsModerator
+    ]
+
+    def post(
+        self,
+        request,
+        report_id,
+    ):
+
+        report = get_report(report_id)
+
+        serializer = ModerationActionSerializer(
+            data=request.data
+        )
+
+        serializer.is_valid(
+            raise_exception=True
+        )
+
+        perform_moderation_action(
+            report=report,
+            action=serializer.validated_data["action"],
+        )
+
+        return Response(
+            {
+                "message": "Moderation action completed."
+            }
         )

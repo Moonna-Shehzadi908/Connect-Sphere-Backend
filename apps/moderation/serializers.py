@@ -156,3 +156,16 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "created_at",
             "reviewed_at",
         )
+
+class ModerationActionSerializer(serializers.Serializer):
+
+    action = serializers.ChoiceField(
+        choices=[
+            ("remove_post", "Remove Post"),
+            ("remove_comment", "Remove Comment"),
+            ("warn_user", "Warn User"),
+            ("suspend_user", "Suspend User"),
+            ("ban_user", "Ban User"),
+            ("restore_content", "Restore Content"),
+        ]
+    )

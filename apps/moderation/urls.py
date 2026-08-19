@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import CreateReportView, ReportDetailView, ReportListView
+from .views import CreateReportView, ModerationActionView, ReportDetailView, ReportListView
 
 urlpatterns = [
 
@@ -19,5 +19,10 @@ urlpatterns = [
         "reports/<int:report_id>/",
         ReportDetailView.as_view(),
         name="report-detail",
+    ),
+    path(
+        "reports/<int:report_id>/action/",
+        ModerationActionView.as_view(),
+        name="moderation-action",
     ),
 ]

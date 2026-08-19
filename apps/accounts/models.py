@@ -22,5 +22,10 @@ class User(AbstractUser):
 
     #Overriding the __str__ method to return the email of the user when
     #the user object is printed or converted to a string. This is useful
+
+    is_suspended = models.BooleanField(default=False,)
+
+    suspended_until = models.DateTimeField(null=True,blank=True,)
+    
     def __str__(self):
         return self.email
