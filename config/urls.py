@@ -62,6 +62,14 @@ urlpatterns = [
         "api/messaging/",
         include("apps.messaging.urls"),
     ),
+    # =========================
+# SEARCH
+# =========================
+
+path(
+    "api/search/",
+    include("apps.search.urls"),
+),
 ]
 
 
