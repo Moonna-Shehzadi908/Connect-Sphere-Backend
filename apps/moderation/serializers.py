@@ -169,3 +169,15 @@ class ModerationActionSerializer(serializers.Serializer):
             ("restore_content", "Restore Content"),
         ]
     )
+
+class ModerationAnalyticsSerializer(serializers.Serializer):
+
+    reports_over_time = serializers.ListField()
+
+    reports_by_reason = serializers.ListField()
+
+    top_reporters = serializers.ListField()
+
+    top_moderators = serializers.ListField()
+
+    average_resolution_time = serializers.CharField()

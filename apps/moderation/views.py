@@ -4,14 +4,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import CreateReportSerializer
+from .serializers import CreateReportSerializer, ModerationAnalyticsSerializer
 from .services import create_report
 from rest_framework.generics import ListAPIView
 
 from apps.core.pagination import DefaultPagination
 
 from .permissions import IsModerator
-from .selectors import get_report, get_reports
+from .selectors import get_average_resolution_time, get_report, get_reports, get_reports_over_time, get_top_moderators, get_top_reporters, get_reports_by_reason
 from .serializers import ReportListSerializer
 from rest_framework.generics import RetrieveAPIView
 
@@ -115,3 +115,63 @@ class ModerationActionView(APIView):
                 "message": "Moderation action completed."
             }
         )
+
+class ModerationAnalyticsView(APIView):
+
+    permission_classes = [
+        IsModerator
+    ]
+
+    def get(self, request):
+
+        data = {
+
+            "reports_over_time":
+                list(
+                    get_reports_over_time()
+                ),
+
+            "reports_by_reason":
+                list(
+                    get_reports_by_reason()
+                ),
+
+            "top_reporters":[
+
+                {
+                    "id":u.id,
+                    "username":u.username,
+                    "reports_created":u.reports_created,
+                }
+
+                for u in get_top_reporters()
+
+            ],
+
+            "top_moderators":[
+
+                {
+                    "id":u.id,
+                    "username":u.username,
+                    "reviews":u.reviews,
+                }
+
+                for u in get_top_moderators()
+
+            ],
+
+            "average_resolution_time":
+
+                str(
+
+                    get_average_resolution_time()[
+                        "average"
+                    ]
+
+                )
+
+        }
+
+        serializer = ModerationAnalyticsSerializer(data)
+
+        return Response(serializer.data)
