@@ -1,6 +1,13 @@
 from django.urls import path
 
-from .views import CreateReportView, ModerationActionView, ModerationAnalyticsView, ReportDetailView, ReportListView
+from .views import (
+    CreateReportView,
+    ModerationActionView,
+    ModerationAnalyticsView,
+    ReportDetailView,
+    ReportListView,
+    MyWarningsView,
+)
 
 urlpatterns = [
 
@@ -15,19 +22,28 @@ urlpatterns = [
         CreateReportView.as_view(),
         name="create-report",
     ),
+
     path(
         "reports/<int:report_id>/",
         ReportDetailView.as_view(),
         name="report-detail",
     ),
+
     path(
         "reports/<int:report_id>/action/",
         ModerationActionView.as_view(),
         name="moderation-action",
     ),
+
     path(
         "analytics/",
         ModerationAnalyticsView.as_view(),
         name="moderation-analytics",
+    ),
+
+   path(
+        "my-warnings/",
+        MyWarningsView.as_view(),
+        name="my-warnings",
     ),
 ]

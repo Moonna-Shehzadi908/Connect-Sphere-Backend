@@ -61,8 +61,8 @@ class UserSerializer(serializers.ModelSerializer):
             "id",
             "username",
             "email",
+            "role",
         )
-
 
 # ==========================
 # LOGIN

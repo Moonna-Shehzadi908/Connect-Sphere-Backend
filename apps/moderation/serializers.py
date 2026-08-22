@@ -1,14 +1,22 @@
 from rest_framework import serializers
 
-from .models import Report
-from apps.posts.models import Post
-from apps.comments.models import Comment
 from django.contrib.auth import get_user_model
+
+from .models import (
+    Report,
+    UserWarning,
+)
+
 from apps.posts.models import Post
 from apps.comments.models import Comment
+
 
 User = get_user_model()
 
+
+# =========================================================
+# CREATE REPORT
+# =========================================================
 
 class CreateReportSerializer(serializers.Serializer):
 
@@ -47,13 +55,21 @@ class CreateReportSerializer(serializers.Serializer):
             attrs.get("reported_comment"),
         ]
 
-        if sum(target is not None for target in targets) != 1:
+        if sum(
+            target is not None
+            for target in targets
+        ) != 1:
 
             raise serializers.ValidationError(
                 "Select exactly one object to report."
             )
 
         return attrs
+
+
+# =========================================================
+# REPORT LIST
+# =========================================================
 
 class ReportListSerializer(serializers.ModelSerializer):
 
@@ -80,6 +96,11 @@ class ReportListSerializer(serializers.ModelSerializer):
             "reviewed_by",
         )
 
+
+# =========================================================
+# SIMPLE USER
+# =========================================================
+
 class SimpleUserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -91,6 +112,10 @@ class SimpleUserSerializer(serializers.ModelSerializer):
             "username",
         )
 
+
+# =========================================================
+# SIMPLE POST
+# =========================================================
 
 class SimplePostSerializer(serializers.ModelSerializer):
 
@@ -109,6 +134,11 @@ class SimplePostSerializer(serializers.ModelSerializer):
             "author",
         )
 
+
+# =========================================================
+# SIMPLE COMMENT
+# =========================================================
+
 class SimpleCommentSerializer(serializers.ModelSerializer):
 
     author = serializers.CharField(
@@ -126,17 +156,30 @@ class SimpleCommentSerializer(serializers.ModelSerializer):
             "author",
         )
 
+
+# =========================================================
+# REPORT DETAIL
+# =========================================================
+
 class ReportDetailSerializer(serializers.ModelSerializer):
 
     reporter = SimpleUserSerializer()
 
-    reported_user = SimpleUserSerializer()
+    reported_user = SimpleUserSerializer(
+        allow_null=True,
+    )
 
-    reported_post = SimplePostSerializer()
+    reported_post = SimplePostSerializer(
+        allow_null=True,
+    )
 
-    reported_comment = SimpleCommentSerializer()
+    reported_comment = SimpleCommentSerializer(
+        allow_null=True,
+    )
 
-    reviewed_by = SimpleUserSerializer()
+    reviewed_by = SimpleUserSerializer(
+        allow_null=True,
+    )
 
     class Meta:
 
@@ -157,20 +200,50 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "reviewed_at",
         )
 
+
+# =========================================================
+# MODERATION ACTION
+# =========================================================
+
 class ModerationActionSerializer(serializers.Serializer):
 
     action = serializers.ChoiceField(
         choices=[
-            ("remove_post", "Remove Post"),
-            ("remove_comment", "Remove Comment"),
-            ("warn_user", "Warn User"),
-            ("suspend_user", "Suspend User"),
-            ("ban_user", "Ban User"),
-            ("restore_content", "Restore Content"),
+            (
+                "remove_post",
+                "Remove Post",
+            ),
+            (
+                "remove_comment",
+                "Remove Comment",
+            ),
+            (
+                "warn_user",
+                "Warn User",
+            ),
+            (
+                "suspend_user",
+                "Suspend User",
+            ),
+            (
+                "ban_user",
+                "Ban User",
+            ),
+            (
+                "restore_content",
+                "Restore Content",
+            ),
         ]
     )
 
-class ModerationAnalyticsSerializer(serializers.Serializer):
+
+# =========================================================
+# MODERATION ANALYTICS
+# =========================================================
+
+class ModerationAnalyticsSerializer(
+    serializers.Serializer
+):
 
     reports_over_time = serializers.ListField()
 
@@ -181,3 +254,36 @@ class ModerationAnalyticsSerializer(serializers.Serializer):
     top_moderators = serializers.ListField()
 
     average_resolution_time = serializers.CharField()
+
+
+# =========================================================
+# USER WARNING
+# =========================================================
+
+class UserWarningSerializer(
+    serializers.ModelSerializer
+):
+
+    moderator = serializers.CharField(
+        source="moderator.username",
+        read_only=True,
+        allow_null=True,
+    )
+
+    reported_post_id = serializers.IntegerField(
+        source="reported_post.id",
+        read_only=True,
+        allow_null=True,
+    )
+
+    class Meta:
+
+        model = UserWarning
+
+        fields = (
+            "id",
+            "reason",
+            "moderator",
+            "reported_post_id",
+            "created_at",
+        )

@@ -135,6 +135,15 @@ class UserWarning(models.Model):
         related_name="issued_warnings",
     )
 
+    # NEW: warning kis post ki wajah se di gayi
+    reported_post = models.ForeignKey(
+        Post,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="moderation_warnings",
+    )
+
     reason = models.CharField(
         max_length=255,
     )
@@ -142,3 +151,9 @@ class UserWarning(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
+
+    def __str__(self):
+        return (
+            f"Warning for {self.user.username} "
+            f"- {self.reason}"
+        )

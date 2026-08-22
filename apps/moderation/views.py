@@ -1,24 +1,48 @@
 # Create your views here.
+
+from django.utils import timezone
+
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from .serializers import CreateReportSerializer, ModerationAnalyticsSerializer
-from .services import create_report
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from apps.core.pagination import DefaultPagination
 
+from .models import UserWarning
+
 from .permissions import IsModerator
-from .selectors import get_average_resolution_time, get_report, get_reports, get_reports_over_time, get_top_moderators, get_top_reporters, get_reports_by_reason
-from .serializers import ReportListSerializer
-from rest_framework.generics import RetrieveAPIView
 
-from .serializers import ReportDetailSerializer
+from .selectors import (
+    get_average_resolution_time,
+    get_report,
+    get_reports,
+    get_reports_over_time,
+    get_top_moderators,
+    get_top_reporters,
+    get_reports_by_reason,
+)
 
-from .services import perform_moderation_action
-from .serializers import ModerationActionSerializer
+from .serializers import (
+    CreateReportSerializer,
+    ModerationAnalyticsSerializer,
+    ReportListSerializer,
+    ReportDetailSerializer,
+    ModerationActionSerializer,
+    UserWarningSerializer,
+)
+
+from .services import (
+    create_report,
+    perform_moderation_action,
+)
+
+
+# =========================================================
+# CREATE REPORT
+# =========================================================
+
 class CreateReportView(APIView):
 
     permission_classes = [
@@ -49,6 +73,11 @@ class CreateReportView(APIView):
             status=status.HTTP_201_CREATED,
         )
 
+
+# =========================================================
+# REPORT LIST
+# =========================================================
+
 class ReportListView(ListAPIView):
 
     permission_classes = [
@@ -61,11 +90,16 @@ class ReportListView(ListAPIView):
 
     def get_queryset(self):
 
-        status = self.request.query_params.get(
+        report_status = self.request.query_params.get(
             "status"
         )
 
-        return get_reports(status)
+        return get_reports(report_status)
+
+
+# =========================================================
+# REPORT DETAIL
+# =========================================================
 
 class ReportDetailView(RetrieveAPIView):
 
@@ -83,6 +117,11 @@ class ReportDetailView(RetrieveAPIView):
             self.kwargs["report_id"]
         )
 
+
+# =========================================================
+# MODERATION ACTION
+# =========================================================
+
 class ModerationActionView(APIView):
 
     permission_classes = [
@@ -95,7 +134,9 @@ class ModerationActionView(APIView):
         report_id,
     ):
 
-        report = get_report(report_id)
+        report = get_report(
+            report_id
+        )
 
         serializer = ModerationActionSerializer(
             data=request.data
@@ -105,16 +146,76 @@ class ModerationActionView(APIView):
             raise_exception=True
         )
 
+        action = serializer.validated_data[
+            "action"
+        ]
+
+        # =================================================
+        # SAVE MODERATOR
+        # =================================================
+
+        report.reviewed_by = request.user
+        report.reviewed_at = timezone.now()
+
+        report.save(
+            update_fields=[
+                "reviewed_by",
+                "reviewed_at",
+            ]
+        )
+
+        # =================================================
+        # PERFORM ACTION
+        # =================================================
+
         perform_moderation_action(
             report=report,
-            action=serializer.validated_data["action"],
+            action=action,
+            moderator=request.user,
+        )
+
+        # =================================================
+        # UPDATE REPORT STATUS
+        # =================================================
+
+        if action in [
+            "remove_post",
+            "remove_comment",
+            "warn_user",
+            "suspend_user",
+            "ban_user",
+        ]:
+
+            report.status = (
+                report.Status.RESOLVED
+            )
+
+        elif action == "restore_content":
+
+            report.status = (
+                report.Status.REJECTED
+            )
+
+        report.save(
+            update_fields=[
+                "status",
+            ]
         )
 
         return Response(
             {
-                "message": "Moderation action completed."
-            }
+                "message": (
+                    "Moderation action completed."
+                ),
+                "status": report.status,
+            },
+            status=status.HTTP_200_OK,
         )
+
+
+# =========================================================
+# MODERATION ANALYTICS
+# =========================================================
 
 class ModerationAnalyticsView(APIView):
 
@@ -136,42 +237,79 @@ class ModerationAnalyticsView(APIView):
                     get_reports_by_reason()
                 ),
 
-            "top_reporters":[
+            "top_reporters": [
 
                 {
-                    "id":u.id,
-                    "username":u.username,
-                    "reports_created":u.reports_created,
+                    "id": user.id,
+                    "username": user.username,
+                    "reports_created": (
+                        user.reports_created
+                    ),
                 }
 
-                for u in get_top_reporters()
-
+                for user in get_top_reporters()
             ],
 
-            "top_moderators":[
+            "top_moderators": [
 
                 {
-                    "id":u.id,
-                    "username":u.username,
-                    "reviews":u.reviews,
+                    "id": user.id,
+                    "username": user.username,
+                    "reviews": user.reviews,
                 }
 
-                for u in get_top_moderators()
-
+                for user in get_top_moderators()
             ],
 
             "average_resolution_time":
-
                 str(
-
                     get_average_resolution_time()[
                         "average"
                     ]
-
-                )
-
+                ),
         }
 
-        serializer = ModerationAnalyticsSerializer(data)
+        serializer = ModerationAnalyticsSerializer(
+            data
+        )
 
-        return Response(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
+
+
+# =========================================================
+# MY WARNINGS
+# =========================================================
+
+class MyWarningsView(APIView):
+
+    permission_classes = [
+        IsAuthenticated
+    ]
+
+    def get(self, request):
+
+        warnings = (
+            UserWarning.objects
+            .filter(
+                user=request.user
+            )
+            .select_related(
+                "moderator"
+            )
+            .order_by(
+                "-created_at"
+            )
+        )
+
+        serializer = UserWarningSerializer(
+            warnings,
+            many=True,
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )

@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.notifications",
     "apps.messaging",
-
+"apps.comments",
     # Existing search feature
     "apps.search",
 

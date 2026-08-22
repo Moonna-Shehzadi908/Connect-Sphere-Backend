@@ -1,25 +1,25 @@
-from django.contrib.admin import action
-
-from .models import Report
-
-from enum import Enum
-from django.utils import timezone
 from datetime import timedelta
+from enum import Enum
+
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from .models import Report, UserWarning
+
+
+User = get_user_model()
+
+
 class ModerationAction(Enum):
-
     REMOVE_POST = "remove_post"
-
     REMOVE_COMMENT = "remove_comment"
-
     WARN_USER = "warn_user"
-
     SUSPEND_USER = "suspend_user"
-
     BAN_USER = "ban_user"
-
     RESTORE_CONTENT = "restore_content"
+
+
 def create_report(
     *,
     reporter,
@@ -30,26 +30,41 @@ def create_report(
     description="",
 ):
     """
-    Create a report if one doesn't already exist
-    for the same reporter and target.
+    Create a new report.
+
+    If the same reporter has an already-pending report
+    for the same target, return that existing pending report.
+
+    If the old report was resolved/rejected, create a
+    fresh pending report.
     """
 
-    report, created = Report.objects.get_or_create(
+    existing_report = Report.objects.filter(
         reporter=reporter,
         reported_user=reported_user,
         reported_post=reported_post,
         reported_comment=reported_comment,
-        defaults={
-            "reason": reason,
-            "description": description,
-        },
-    )
+        status=Report.Status.PENDING,
+    ).first()
 
+    # Already reported and still pending
+    if existing_report:
+        return existing_report
+
+    # Old report was resolved/rejected, so create a new one
+    return Report.objects.create(
+        reporter=reporter,
+        reported_user=reported_user,
+        reported_post=reported_post,
+        reported_comment=reported_comment,
+        reason=reason,
+        description=description,
+        status=Report.Status.PENDING,
+    )
     return report
 
 
 def get_reported_user(report):
-
     if report.reported_user:
         return report.reported_user
 
@@ -61,7 +76,17 @@ def get_reported_user(report):
 
     return None
 
-def perform_moderation_action(*,report, action,):
+def perform_moderation_action(
+    *,
+    report,
+    action,
+    moderator,
+):
+
+    # =====================================================
+    # REMOVE POST
+    # =====================================================
+
     if action == ModerationAction.REMOVE_POST.value:
 
         if not report.reported_post:
@@ -69,11 +94,15 @@ def perform_moderation_action(*,report, action,):
                 "This report does not reference a post."
             )
 
-        report.reported_post.is_deleted = True
-
-        report.reported_post.save()
+        report.reported_post.delete()
 
         return
+
+
+    # =====================================================
+    # REMOVE COMMENT
+    # =====================================================
+
     if action == ModerationAction.REMOVE_COMMENT.value:
 
         if not report.reported_comment:
@@ -81,39 +110,93 @@ def perform_moderation_action(*,report, action,):
                 "This report does not reference a comment."
             )
 
-        report.reported_comment.is_deleted = True
+        report.reported_comment.delete()
 
-        report.reported_comment.save()
+        return
 
-        return  
+
+    # =====================================================
+    # WARN USER
+    # =====================================================
+
     if action == ModerationAction.WARN_USER.value:
 
-        user = report.reported_user
+        user = get_reported_user(report)
 
-        if not user and report.reported_post:
-            user = report.reported_post.author
-
-        if not user and report.reported_comment:
-            user = report.reported_comment.author
+        if not user:
+            raise ValidationError(
+                "No user found for this report."
+            )
 
         UserWarning.objects.create(
             user=user,
-            moderator=report.reviewed_by,
+            moderator=moderator,
+            reported_post=report.reported_post,
             reason=report.reason,
         )
 
         return
-    
+
+
+    # =====================================================
+    # SUSPEND USER
+    # =====================================================
+
     if action == ModerationAction.SUSPEND_USER.value:
 
         user = get_reported_user(report)
 
+        if not user:
+            raise ValidationError(
+                "No user found for this report."
+            )
+
         user.is_suspended = True
 
         user.suspended_until = (
-            timezone.now() + timedelta(days=7)
-    )
+            timezone.now()
+            + timedelta(days=7)
+        )
 
         user.save()
 
         return
+
+
+    # =====================================================
+    # BAN USER
+    # =====================================================
+
+    if action == ModerationAction.BAN_USER.value:
+
+        user = get_reported_user(report)
+
+        if not user:
+            raise ValidationError(
+                "No user found for this report."
+            )
+
+        user.is_active = False
+        user.save()
+
+        return
+
+
+    # =====================================================
+    # RESTORE CONTENT
+    # =====================================================
+
+    if action == ModerationAction.RESTORE_CONTENT.value:
+
+        raise ValidationError(
+            "Restore content is not supported for permanently deleted content."
+        )
+
+
+    # =====================================================
+    # INVALID ACTION
+    # =====================================================
+
+    raise ValidationError(
+        "Invalid moderation action."
+    )

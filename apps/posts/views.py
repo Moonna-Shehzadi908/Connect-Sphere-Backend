@@ -17,9 +17,13 @@ from apps.notifications.services import create_notification
 
 from .models import (
     Post,
+    PostImage,
+    Hashtag,
+    Mention,
     PostLike,
-    Comment,
 )
+
+from apps.comments.models import Comment
 
 from .serializers import (
     PostSerializer,
@@ -130,20 +134,21 @@ class PostListView(APIView):
     def get(self, request):
 
         posts = (
-            Post.objects
-            .select_related(
-                "author",
-                "author__profile",
-            )
-            .prefetch_related(
-                "images",
-                "likes",
-                "comments",
-                "comments__author",
-                "comments__author__profile",
-            )
-            .order_by("-created_at")
-        )
+    Post.objects
+    .filter(is_deleted=False)
+    .select_related(
+        "author",
+        "author__profile",
+    )
+    .prefetch_related(
+        "images",
+        "likes",
+        "comments",
+        "comments__author",
+        "comments__author__profile",
+    )
+    .order_by("-created_at")
+)
 
         serializer = PostSerializer(
             posts,

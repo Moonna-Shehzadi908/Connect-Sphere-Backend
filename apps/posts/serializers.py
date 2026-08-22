@@ -3,10 +3,11 @@ from rest_framework import serializers
 from .models import (
     Post,
     PostImage,
+    Hashtag,
+    Mention,
     PostLike,
-    Comment,
 )
-
+from apps.comments.models import Comment
 
 # ==========================
 # POST IMAGE
