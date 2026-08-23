@@ -28,3 +28,5 @@ __pycache__/
 *.pyc
 db.sqlite3
 media/
+Frontend/node_modules/
+Frontend/dist/
