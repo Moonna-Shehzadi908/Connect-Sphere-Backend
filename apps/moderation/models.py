@@ -1,11 +1,10 @@
-# Create your models here.
 from django.conf import settings
 from django.db import models
+from django.core.exceptions import ValidationError
 
 from apps.posts.models import Post
 from apps.comments.models import Comment
 
-from django.core.exceptions import ValidationError
 
 class Report(models.Model):
 
@@ -15,7 +14,10 @@ class Report(models.Model):
         HARASSMENT = "harassment", "Harassment"
         HATE_SPEECH = "hate_speech", "Hate Speech"
         VIOLENCE = "violence", "Violence"
-        MISINFORMATION = "misinformation", "False Information"
+        MISINFORMATION = (
+            "misinformation",
+            "False Information",
+        )
         NUDITY = "nudity", "Nudity"
         COPYRIGHT = "copyright", "Copyright"
         SCAM = "scam", "Scam"
@@ -92,7 +94,11 @@ class Report(models.Model):
     )
 
     def __str__(self):
-        return f"Report #{self.id} ({self.status})"
+
+        return (
+            f"Report #{self.id} "
+            f"({self.status})"
+        )
 
     def clean(self):
 
@@ -108,9 +114,11 @@ class Report(models.Model):
         )
 
         if selected_targets != 1:
+
             raise ValidationError(
                 "A report must target exactly one object."
             )
+
     def save(self, *args, **kwargs):
 
         self.full_clean()
@@ -119,6 +127,7 @@ class Report(models.Model):
             *args,
             **kwargs,
         )
+
 
 class UserWarning(models.Model):
 
@@ -135,7 +144,7 @@ class UserWarning(models.Model):
         related_name="issued_warnings",
     )
 
-    # NEW: warning kis post ki wajah se di gayi
+    # Warning kis post ki wajah se di gayi
     reported_post = models.ForeignKey(
         Post,
         on_delete=models.SET_NULL,
@@ -153,7 +162,9 @@ class UserWarning(models.Model):
     )
 
     def __str__(self):
+
         return (
-            f"Warning for {self.user.username} "
+            f"Warning for "
+            f"{self.user.username} "
             f"- {self.reason}"
         )

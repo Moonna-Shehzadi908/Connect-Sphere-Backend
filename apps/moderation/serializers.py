@@ -18,24 +18,32 @@ User = get_user_model()
 # CREATE REPORT
 # =========================================================
 
-class CreateReportSerializer(serializers.Serializer):
+class CreateReportSerializer(
+    serializers.Serializer
+):
 
-    reported_user = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(),
-        required=False,
-        allow_null=True,
+    reported_user = (
+        serializers.PrimaryKeyRelatedField(
+            queryset=User.objects.all(),
+            required=False,
+            allow_null=True,
+        )
     )
 
-    reported_post = serializers.PrimaryKeyRelatedField(
-        queryset=Post.objects.all(),
-        required=False,
-        allow_null=True,
+    reported_post = (
+        serializers.PrimaryKeyRelatedField(
+            queryset=Post.objects.all(),
+            required=False,
+            allow_null=True,
+        )
     )
 
-    reported_comment = serializers.PrimaryKeyRelatedField(
-        queryset=Comment.objects.all(),
-        required=False,
-        allow_null=True,
+    reported_comment = (
+        serializers.PrimaryKeyRelatedField(
+            queryset=Comment.objects.all(),
+            required=False,
+            allow_null=True,
+        )
     )
 
     reason = serializers.ChoiceField(
@@ -71,7 +79,9 @@ class CreateReportSerializer(serializers.Serializer):
 # REPORT LIST
 # =========================================================
 
-class ReportListSerializer(serializers.ModelSerializer):
+class ReportListSerializer(
+    serializers.ModelSerializer
+):
 
     reporter = serializers.CharField(
         source="reporter.username",
@@ -101,7 +111,9 @@ class ReportListSerializer(serializers.ModelSerializer):
 # SIMPLE USER
 # =========================================================
 
-class SimpleUserSerializer(serializers.ModelSerializer):
+class SimpleUserSerializer(
+    serializers.ModelSerializer
+):
 
     class Meta:
 
@@ -117,7 +129,9 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 # SIMPLE POST
 # =========================================================
 
-class SimplePostSerializer(serializers.ModelSerializer):
+class SimplePostSerializer(
+    serializers.ModelSerializer
+):
 
     author = serializers.CharField(
         source="author.username",
@@ -139,7 +153,9 @@ class SimplePostSerializer(serializers.ModelSerializer):
 # SIMPLE COMMENT
 # =========================================================
 
-class SimpleCommentSerializer(serializers.ModelSerializer):
+class SimpleCommentSerializer(
+    serializers.ModelSerializer
+):
 
     author = serializers.CharField(
         source="author.username",
@@ -161,7 +177,9 @@ class SimpleCommentSerializer(serializers.ModelSerializer):
 # REPORT DETAIL
 # =========================================================
 
-class ReportDetailSerializer(serializers.ModelSerializer):
+class ReportDetailSerializer(
+    serializers.ModelSerializer
+):
 
     reporter = SimpleUserSerializer()
 
@@ -205,7 +223,9 @@ class ReportDetailSerializer(serializers.ModelSerializer):
 # MODERATION ACTION
 # =========================================================
 
-class ModerationActionSerializer(serializers.Serializer):
+class ModerationActionSerializer(
+    serializers.Serializer
+):
 
     action = serializers.ChoiceField(
         choices=[
@@ -245,15 +265,25 @@ class ModerationAnalyticsSerializer(
     serializers.Serializer
 ):
 
-    reports_over_time = serializers.ListField()
+    reports_over_time = (
+        serializers.ListField()
+    )
 
-    reports_by_reason = serializers.ListField()
+    reports_by_reason = (
+        serializers.ListField()
+    )
 
-    top_reporters = serializers.ListField()
+    top_reporters = (
+        serializers.ListField()
+    )
 
-    top_moderators = serializers.ListField()
+    top_moderators = (
+        serializers.ListField()
+    )
 
-    average_resolution_time = serializers.CharField()
+    average_resolution_time = (
+        serializers.CharField()
+    )
 
 
 # =========================================================

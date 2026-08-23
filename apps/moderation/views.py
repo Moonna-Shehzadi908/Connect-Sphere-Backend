@@ -1,12 +1,13 @@
-# Create your views here.
-
 from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+)
 
 from apps.core.pagination import DefaultPagination
 
@@ -66,7 +67,9 @@ class CreateReportView(APIView):
 
         return Response(
             {
-                "message": "Report submitted successfully.",
+                "message": (
+                    "Report submitted successfully."
+                ),
                 "report_id": report.id,
                 "status": report.status,
             },
@@ -90,11 +93,15 @@ class ReportListView(ListAPIView):
 
     def get_queryset(self):
 
-        report_status = self.request.query_params.get(
-            "status"
+        report_status = (
+            self.request.query_params.get(
+                "status"
+            )
         )
 
-        return get_reports(report_status)
+        return get_reports(
+            report_status
+        )
 
 
 # =========================================================
@@ -155,6 +162,7 @@ class ModerationActionView(APIView):
         # =================================================
 
         report.reviewed_by = request.user
+
         report.reviewed_at = timezone.now()
 
         report.save(

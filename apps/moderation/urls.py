@@ -9,6 +9,7 @@ from .views import (
     MyWarningsView,
 )
 
+
 urlpatterns = [
 
     path(
@@ -41,7 +42,7 @@ urlpatterns = [
         name="moderation-analytics",
     ),
 
-   path(
+    path(
         "my-warnings/",
         MyWarningsView.as_view(),
         name="my-warnings",

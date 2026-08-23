@@ -4,17 +4,29 @@ from .models import Notification
 
 
 class NotificationSenderSerializer(serializers.Serializer):
+
     id = serializers.IntegerField()
+
     username = serializers.CharField()
+
     avatar = serializers.SerializerMethodField()
 
     def get_avatar(self, obj):
-        profile = getattr(obj, "profile", None)
+
+        profile = getattr(
+            obj,
+            "profile",
+            None,
+        )
 
         if profile and profile.avatar:
-            request = self.context.get("request")
+
+            request = self.context.get(
+                "request"
+            )
 
             if request:
+
                 return request.build_absolute_uri(
                     profile.avatar.url
                 )
@@ -24,13 +36,16 @@ class NotificationSenderSerializer(serializers.Serializer):
         return None
 
 
-class NotificationSerializer(serializers.ModelSerializer):
+class NotificationSerializer(
+    serializers.ModelSerializer
+):
 
     sender = NotificationSenderSerializer(
         read_only=True
     )
 
     class Meta:
+
         model = Notification
 
         fields = [

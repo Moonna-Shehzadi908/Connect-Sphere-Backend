@@ -10,6 +10,7 @@ from .views import (
 
 
 urlpatterns = [
+
     path(
         "",
         NotificationListView.as_view(),

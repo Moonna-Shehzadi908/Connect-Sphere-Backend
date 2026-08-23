@@ -9,6 +9,10 @@ class Notification(models.Model):
         COMMENT = "COMMENT", "Comment"
         FOLLOW = "FOLLOW", "Follow"
         MESSAGE = "MESSAGE", "Message"
+        MODERATION_WARNING = (
+            "MODERATION_WARNING",
+            "Moderation Warning",
+        )
 
     recipient = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -23,7 +27,7 @@ class Notification(models.Model):
     )
 
     notification_type = models.CharField(
-        max_length=20,
+        max_length=30,
         choices=NotificationType.choices,
     )
 
