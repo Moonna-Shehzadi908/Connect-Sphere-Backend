@@ -95,9 +95,7 @@ class ConversationSerializer(serializers.ModelSerializer):
 class SendMessageSerializer(serializers.ModelSerializer):
 
     class Meta:
-
         model = Message
-
         fields = (
             "conversation",
             "content",
@@ -107,11 +105,9 @@ class SendMessageSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
 
         content = attrs.get("content")
-
         attachment = attrs.get("attachment")
 
         if not content and not attachment:
-
             raise serializers.ValidationError(
                 "A message must contain text or an attachment."
             )

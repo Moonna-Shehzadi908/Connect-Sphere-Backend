@@ -92,13 +92,11 @@ class ConversationListView(ListAPIView):
 
 
 class SendMessageView(APIView):
-
     permission_classes = [
         IsAuthenticated,
     ]
 
     def post(self, request):
-
         serializer = SendMessageSerializer(
             data=request.data
         )
@@ -120,7 +118,6 @@ class SendMessageView(APIView):
             self,
             conversation,
         ):
-
             return Response(
                 {
                     "detail":
@@ -133,8 +130,9 @@ class SendMessageView(APIView):
             sender=request.user,
             conversation=conversation,
             content=serializer.validated_data.get(
-                "content"
-            ),
+                "content",
+                "",
+            ) or "",
             attachment=serializer.validated_data.get(
                 "attachment"
             ),
@@ -143,22 +141,16 @@ class SendMessageView(APIView):
         avatar = None
 
         try:
-
             if (
                 hasattr(request.user, "profile")
                 and request.user.profile.avatar
             ):
-
-                avatar = (
-                    request.user.profile.avatar.url
-                )
+                avatar = request.user.profile.avatar.url
 
         except Exception:
-
             avatar = None
 
         if avatar:
-
             avatar = request.build_absolute_uri(
                 avatar
             )
@@ -166,11 +158,8 @@ class SendMessageView(APIView):
         attachment = None
 
         if message.attachment:
-
-            attachment = (
-                request.build_absolute_uri(
-                    message.attachment.url
-                )
+            attachment = request.build_absolute_uri(
+                message.attachment.url
             )
 
         return Response(
