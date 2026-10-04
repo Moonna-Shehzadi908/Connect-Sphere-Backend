@@ -45,7 +45,7 @@ class Report(models.Model):
 
     reported_post = models.ForeignKey(
         Post,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
     )
@@ -113,10 +113,17 @@ class Report(models.Model):
             for target in targets
         )
 
-        if selected_targets != 1:
-
+        # New reports must target exactly one object
+        if self.pk is None and selected_targets != 1:
             raise ValidationError(
                 "A report must target exactly one object."
+            )
+
+        # Existing reports can have zero targets
+        # if the reported post/comment was deleted.
+        if self.pk is not None and selected_targets > 1:
+            raise ValidationError(
+                "A report can target only one object."
             )
 
     def save(self, *args, **kwargs):
